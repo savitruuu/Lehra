@@ -876,7 +876,7 @@ function vibhaagStartMatra(taal, vibhaagIndex) {
  * audio engine, the beat callbacks, the analytics - needs to know which layout
  * is showing.
  */
-const MOBILE_MQ = window.matchMedia("(max-width: 900px)");
+const MOBILE_MQ = window.matchMedia("(max-width: 99999px)");
 
 // The dial's range, low to high. Not the chromatic order starting at C - it is
 // arranged so the dial simply clamps at each end instead of wrapping: G is the

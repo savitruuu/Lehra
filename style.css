@@ -155,22 +155,23 @@ body {
    assumed a 71px header. dvh tracks the retracting address bar, so nothing is
    left stranded under it; the vh line above is the fallback for browsers
    without dvh. */
-@media (max-width: 900px) {
+@media (max-width: 99999px) {
   .app-container {
     width: 100%;
+    max-width: 500px;
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
-    margin: 0;
+    margin: 0 auto;
     border-radius: 0;
-    border: 0;
+    border-left: 1px solid var(--panel-border);
+    border-right: 1px solid var(--panel-border);
     height: 100vh;
     height: 100dvh;
     min-height: 0;
-    /* A full-screen backdrop blur is a per-frame GPU cost on a phone, and here
-       it sits over a flat gradient where it shows nothing. The panels inside
-       keep their own translucency. */
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -184,7 +185,7 @@ body {
   justify-content: space-between;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 99999px) {
   .sidebar {
     display: none; /* We will use a mobile header */
   }
@@ -275,7 +276,7 @@ body {
   border-bottom: 1px solid var(--panel-border);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 99999px) {
   .mobile-header {
     display: flex;
     /* Clears the notch in landscape, and the status bar when installed to the
@@ -312,7 +313,7 @@ body {
 /* The grid row already gives this the leftover height; min-height:0 is what
    actually lets it shrink and scroll rather than pushing the shell taller.
    The bottom padding clears the fixed nav bar and the home indicator. */
-@media (max-width: 900px) {
+@media (max-width: 99999px) {
   .main-content {
     padding: 20px 20px calc(var(--mobile-nav-h) + var(--safe-bottom) + 20px);
     padding-left: max(20px, env(safe-area-inset-left, 0px));
@@ -1008,7 +1009,7 @@ input:checked + .slider-switch:before {
   z-index: 100;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 99999px) {
   .mobile-nav {
     display: grid;
     /* Grow into the home-indicator strip rather than sitting above it, so the
@@ -1348,7 +1349,7 @@ input:checked + .slider-switch:before {
 
 /* Phone held sideways: vertical space is the scarce dimension, so the beat
    tracker stops reserving a tall square and the paddings tighten. */
-@media (max-width: 900px) and (max-height: 480px) and (orientation: landscape) {
+@media (max-width: 99999px) and (max-height: 480px) and (orientation: landscape) {
   .visual-tracker-container {
     min-height: 200px;
   }
@@ -1433,7 +1434,7 @@ input:checked + .slider-switch:before {
    into the drawer. None of it is duplicated markup - app.js relocates the real
    elements, and moves them back if the viewport grows.
    ========================================================================== */
-@media (max-width: 900px) {
+@media (max-width: 99999px) {
 
   /* --- Drawer (the sidebar, slid in from the left) --- */
   .sidebar {
@@ -2222,7 +2223,7 @@ input:checked + .slider-switch:before {
    Deliberately last in the file: nearly every rule here restates one from the
    block above at equal specificity, and wins on source order alone.
    ========================================================================== */
-@media (max-width: 900px) {
+@media (max-width: 99999px) {
 
   /* --- Palette: day ---
      Warm paper, terracotta accent, dark olive on the two musical readouts. */
@@ -3289,7 +3290,7 @@ input:checked + .slider-switch:before {
    traded legibility on the smallest screens - the ones that can least afford
    it - for a property no one had asked for. A short scroll is the better
    failure. Everything above this height is unaffected. */
-@media (max-width: 900px) and (max-height: 700px) {
+@media (max-width: 99999px) and (max-height: 700px) {
   body.player-active .main-content {
     overflow-y: auto;
   }
@@ -3362,14 +3363,14 @@ input:checked + .slider-switch:before {
 
    26px apiece was what pushed the player past one screen on a 640px-tall
    handset. 8px still leaves a ~21px band, which a fingertip lands on easily. */
-@media (max-width: 900px) and (pointer: coarse) {
+@media (max-width: 99999px) and (pointer: coarse) {
   .mixer-cell input[type="range"],
   #player-screen .lehra-volume-slot input[type="range"] {
     padding: 8px 0;
   }
 }
 
-@media (max-width: 900px) and (max-height: 700px) and (pointer: coarse) {
+@media (max-width: 99999px) and (max-height: 700px) and (pointer: coarse) {
   .mixer-cell input[type="range"],
   #player-screen .lehra-volume-slot input[type="range"] {
     padding: 6px 0;
