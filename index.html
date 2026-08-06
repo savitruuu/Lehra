@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover lets the page paint under the notch and the home
+       indicator; the safe-area insets in the stylesheet keep the fixed nav and
+       the header clear of both. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Lehra – Tabla Practice Companion</title>
+  <meta name="description" content="A professional Hindustani classical Lehra loops companion for Tabla practice. Synthesized harmonium, flute, sitar tones, and realistic Tanpura drones.">
+  <!-- Tints the mobile browser chrome to match whichever theme is showing. -->
+  <meta name="theme-color" content="#1a312c" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#fff4e1" media="(prefers-color-scheme: light)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- App mark: the lotus, in the browser tab and on the home screen.
+       SVG first because it is one file and stays sharp at any size, and every
+       current browser prefers it when offered. The 32px PNG is the fallback for
+       anything that ignores rel="icon" with an SVG type - and apple-touch-icon
+       is not a fallback at all: iOS reads only that tag when adding to the home
+       screen, and only a PNG. -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=13.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=13.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=13.0">
+
+  <link rel="stylesheet" href="style.css?v=13.0">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Sidebar on desktop; on phones the same element is the slide-in drawer
+         behind the hamburger, which is why the nav is not duplicated anywhere. -->
+    <aside class="sidebar" id="app-drawer">
+      <div>
+        <button class="drawer-close-btn" id="drawer-close-btn" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+        <div class="brand">
+          <div class="brand-logo">
+            <!-- Tabla logo SVG icon -->
+            <svg viewBox="0 0 24 24">
+              <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12C20,14.4 18.9,16.5 17.2,18H6.8C5.1,16.5 4,14.4 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" />
+            </svg>
+          </div>
+          <span class="brand-name">Lehra</span>
+        </div>
+
+        <nav>
+          <ul class="nav-menu">
+            <li class="nav-item active" data-target="player-screen" id="nav-player">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+              <span>Practice Player</span>
+            </li>
+            <li class="nav-item" data-target="analytics-screen" id="nav-analytics">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+              <span>Practice Analytics</span>
+            </li>
+            <li class="nav-item" data-target="taal-screen" id="nav-taal">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              <span>Taal Information</span>
+            </li>
+            <li class="nav-item" data-target="settings-screen" id="nav-settings">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              <span>Settings</span>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Controls that have no place in the single-screen phone layout are
+             moved in here at runtime (see applyLayoutRelocations in app.js) and moved
+             back out on desktop. Empty, and invisible, on desktop. -->
+        <div class="drawer-extras" id="drawer-extras"></div>
+      </div>
+      <div>
+        <p style="font-size: 12px; color: var(--text-muted); text-align: center;">Lehra v1.0.0 (Web)</p>
+      </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+      <button class="mobile-menu-btn" id="drawer-open-btn" aria-label="Open menu"
+              aria-expanded="false" aria-controls="app-drawer">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+      </button>
+      <div class="brand">
+        <div class="brand-logo" style="width: 32px; height: 32px;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12C20,14.4 18.9,16.5 17.2,18H6.8C5.1,16.5 4,14.4 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/></svg>
+        </div>
+        <span class="brand-name" style="font-size: 18px;">Lehra</span>
+      </div>
+
+      <!-- Phone-only maker's mark, in place of the wordmark the drawer already
+           carries. Purely decorative, hence aria-hidden - the accessible name
+           of the app is the <title>, not this. -->
+      <div class="lotus-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 28" fill="currentColor">
+          <path d="M24 1.5c3.1 5.2 3.1 13 0 19.4-3.1-6.4-3.1-14.2 0-19.4z"/>
+          <path d="M23.4 21.6c-4.4-2.6-7.8-7.2-8.9-12.7 4.6 1.2 8.2 4.9 8.9 12.7z"/>
+          <path d="M24.6 21.6c4.4-2.6 7.8-7.2 8.9-12.7-4.6 1.2-8.2 4.9-8.9 12.7z"/>
+          <path d="M23.2 22.8c-5.4-.4-10.5-3.5-13.4-8.3 5.2-.8 10.3 2 13.4 8.3z"/>
+          <path d="M24.8 22.8c5.4-.4 10.5-3.5 13.4-8.3-5.2-.8-10.3 2-13.4 8.3z"/>
+        </svg>
+      </div>
+
+    </header>
+
+    <!-- Main Content Panels -->
+    <main class="main-content">
+      
+      <!-- 1. PLAYER SCREEN -->
+      <section class="screen active" id="player-screen">
+
+        <!-- Phone-only scale header: the current scale as a dial, with the two
+             arrows stepping it a semitone at a time. It drives the same
+             #pitch-select the desktop layout uses, so there is one source of
+             truth for the scale. The fine-tune slider below is moved in here
+             from the Scale card on phones. -->
+        <div class="scale-hero-wrap" id="scale-hero-wrap">
+          <div class="scale-hero">
+            <button class="scale-step" id="scale-down" aria-label="Lower the scale by a semitone">
+              <!-- The same corona as the dial, at twelve petals instead of
+                   twenty-four. The button is roughly half the dial's diameter,
+                   so halving the count keeps the spacing between petals the
+                   same in pixels and the three circles read as one family
+                   rather than as a fine ring beside two coarse ones. Its own
+                   defs, and its own ids, so each of the three circles is a
+                   self-contained drawing. -->
+              <svg class="mandala-ring" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                <defs>
+                  <path id="sp" d="M100 1C103.6 5 103.6 9 100 13 96.4 9 96.4 5 100 1Z"/>
+                  <path id="sr" d="M100 6.5C101.5 8.7 101.5 10.8 100 13 98.5 10.8 98.5 8.7 100 6.5Z"/>
+                </defs>
+                <g stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke">
+                  <circle cx="100" cy="100" r="82"/>
+                  <circle cx="100" cy="100" r="86"/>
+                  <use href="#sp" transform="rotate(0 100 100)"/><use href="#sp" transform="rotate(30 100 100)"/><use href="#sp" transform="rotate(60 100 100)"/><use href="#sp" transform="rotate(90 100 100)"/><use href="#sp" transform="rotate(120 100 100)"/><use href="#sp" transform="rotate(150 100 100)"/>
+                  <use href="#sp" transform="rotate(180 100 100)"/><use href="#sp" transform="rotate(210 100 100)"/><use href="#sp" transform="rotate(240 100 100)"/><use href="#sp" transform="rotate(270 100 100)"/><use href="#sp" transform="rotate(300 100 100)"/><use href="#sp" transform="rotate(330 100 100)"/>
+                </g>
+                <g fill="currentColor">
+                  <use href="#sr" transform="rotate(15 100 100)"/><use href="#sr" transform="rotate(45 100 100)"/><use href="#sr" transform="rotate(75 100 100)"/><use href="#sr" transform="rotate(105 100 100)"/><use href="#sr" transform="rotate(135 100 100)"/><use href="#sr" transform="rotate(165 100 100)"/>
+                  <use href="#sr" transform="rotate(195 100 100)"/><use href="#sr" transform="rotate(225 100 100)"/><use href="#sr" transform="rotate(255 100 100)"/><use href="#sr" transform="rotate(285 100 100)"/><use href="#sr" transform="rotate(315 100 100)"/><use href="#sr" transform="rotate(345 100 100)"/>
+                </g>
+              </svg>
+              <svg class="scale-step-arrow" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/><path d="M12 16.5 7 8.5H17Z" fill="currentColor"/></svg>
+            </button>
+            <!-- Tapping the orb opens the same anchored dropdown as the tiles
+                 below, listing the same #pitch-select options the desktop
+                 dropdown does - a direct pick, alongside the arrows either
+                 side of it for a step at a time. -->
+            <div class="scale-orb" id="scale-orb" role="button" aria-haspopup="listbox" aria-label="Choose the scale">
+              <!-- Ornament only, phones only: a mandala corona drawn in the
+                   collar just outside the dial's own edge.
+
+                   Four layers, from the inside out. Two hairline rules at r=82
+                   and r=86 straddle the dial's own border, which lands at r=84.7
+                   once the SVG is scaled to 118% - so the dial's edge becomes
+                   the middle line of a set of three rather than a lone circle.
+                   Then twenty-four outlined lotus petals standing free of the
+                   band, and a smaller filled one in each gap between them.
+
+                   The petals are the lotus from the header, not the thin
+                   slivers that were here before: same pointed-both-ends shape,
+                   so the corona and the maker's mark read as one hand. Outlined
+                   rather than solid, because at this scale a filled petal is a
+                   blob and an outlined one is a drawing; the little ones are
+                   filled precisely so they still register when they are two
+                   pixels long.
+
+                   non-scaling-stroke keeps every line a true 1px however the
+                   dial is sized, so the whole thing stays a hairline rather
+                   than thickening with the clamp. -->
+              <svg class="mandala-ring" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                <defs>
+                  <!-- Full petal: r=87 at the base out to r=99. 99 and not more,
+                       because the viewBox stops at r=100 and anything past it is
+                       clipped flat at the four compass points. -->
+                  <path id="mp" d="M100 1C103.6 5 103.6 9 100 13 96.4 9 96.4 5 100 1Z"/>
+                  <!-- Half petal for the gaps: same curve, shorter and narrower. -->
+                  <path id="mr" d="M100 6.5C101.5 8.7 101.5 10.8 100 13 98.5 10.8 98.5 8.7 100 6.5Z"/>
+                </defs>
+                <g stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke">
+                  <circle cx="100" cy="100" r="82"/>
+                  <circle cx="100" cy="100" r="86"/>
+                  <use href="#mp" transform="rotate(0 100 100)"/><use href="#mp" transform="rotate(15 100 100)"/><use href="#mp" transform="rotate(30 100 100)"/><use href="#mp" transform="rotate(45 100 100)"/><use href="#mp" transform="rotate(60 100 100)"/><use href="#mp" transform="rotate(75 100 100)"/>
+                  <use href="#mp" transform="rotate(90 100 100)"/><use href="#mp" transform="rotate(105 100 100)"/><use href="#mp" transform="rotate(120 100 100)"/><use href="#mp" transform="rotate(135 100 100)"/><use href="#mp" transform="rotate(150 100 100)"/><use href="#mp" transform="rotate(165 100 100)"/>
+                  <use href="#mp" transform="rotate(180 100 100)"/><use href="#mp" transform="rotate(195 100 100)"/><use href="#mp" transform="rotate(210 100 100)"/><use href="#mp" transform="rotate(225 100 100)"/><use href="#mp" transform="rotate(240 100 100)"/><use href="#mp" transform="rotate(255 100 100)"/>
+                  <use href="#mp" transform="rotate(270 100 100)"/><use href="#mp" transform="rotate(285 100 100)"/><use href="#mp" transform="rotate(300 100 100)"/><use href="#mp" transform="rotate(315 100 100)"/><use href="#mp" transform="rotate(330 100 100)"/><use href="#mp" transform="rotate(345 100 100)"/>
+                </g>
+                <g fill="currentColor">
+                  <use href="#mr" transform="rotate(7.5 100 100)"/><use href="#mr" transform="rotate(22.5 100 100)"/><use href="#mr" transform="rotate(37.5 100 100)"/><use href="#mr" transform="rotate(52.5 100 100)"/><use href="#mr" transform="rotate(67.5 100 100)"/><use href="#mr" transform="rotate(82.5 100 100)"/>
+                  <use href="#mr" transform="rotate(97.5 100 100)"/><use href="#mr" transform="rotate(112.5 100 100)"/><use href="#mr" transform="rotate(127.5 100 100)"/><use href="#mr" transform="rotate(142.5 100 100)"/><use href="#mr" transform="rotate(157.5 100 100)"/><use href="#mr" transform="rotate(172.5 100 100)"/>
+                  <use href="#mr" transform="rotate(187.5 100 100)"/><use href="#mr" transform="rotate(202.5 100 100)"/><use href="#mr" transform="rotate(217.5 100 100)"/><use href="#mr" transform="rotate(232.5 100 100)"/><use href="#mr" transform="rotate(247.5 100 100)"/><use href="#mr" transform="rotate(262.5 100 100)"/>
+                  <use href="#mr" transform="rotate(277.5 100 100)"/><use href="#mr" transform="rotate(292.5 100 100)"/><use href="#mr" transform="rotate(307.5 100 100)"/><use href="#mr" transform="rotate(322.5 100 100)"/><use href="#mr" transform="rotate(337.5 100 100)"/><use href="#mr" transform="rotate(352.5 100 100)"/>
+                </g>
+              </svg>
+              <div class="scale-note" id="scale-note-display">C#</div>
+              <div class="scale-freq" id="scale-freq-display"></div>
+              <div class="scale-cents" id="scale-cents-display">0</div>
+            </div>
+            <button class="scale-step" id="scale-up" aria-label="Raise the scale by a semitone">
+              <svg class="mandala-ring" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                <defs>
+                  <path id="up" d="M100 1C103.6 5 103.6 9 100 13 96.4 9 96.4 5 100 1Z"/>
+                  <path id="ur" d="M100 6.5C101.5 8.7 101.5 10.8 100 13 98.5 10.8 98.5 8.7 100 6.5Z"/>
+                </defs>
+                <g stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke">
+                  <circle cx="100" cy="100" r="82"/>
+                  <circle cx="100" cy="100" r="86"/>
+                  <use href="#up" transform="rotate(0 100 100)"/><use href="#up" transform="rotate(30 100 100)"/><use href="#up" transform="rotate(60 100 100)"/><use href="#up" transform="rotate(90 100 100)"/><use href="#up" transform="rotate(120 100 100)"/><use href="#up" transform="rotate(150 100 100)"/>
+                  <use href="#up" transform="rotate(180 100 100)"/><use href="#up" transform="rotate(210 100 100)"/><use href="#up" transform="rotate(240 100 100)"/><use href="#up" transform="rotate(270 100 100)"/><use href="#up" transform="rotate(300 100 100)"/><use href="#up" transform="rotate(330 100 100)"/>
+                </g>
+                <g fill="currentColor">
+                  <use href="#ur" transform="rotate(15 100 100)"/><use href="#ur" transform="rotate(45 100 100)"/><use href="#ur" transform="rotate(75 100 100)"/><use href="#ur" transform="rotate(105 100 100)"/><use href="#ur" transform="rotate(135 100 100)"/><use href="#ur" transform="rotate(165 100 100)"/>
+                  <use href="#ur" transform="rotate(195 100 100)"/><use href="#ur" transform="rotate(225 100 100)"/><use href="#ur" transform="rotate(255 100 100)"/><use href="#ur" transform="rotate(285 100 100)"/><use href="#ur" transform="rotate(315 100 100)"/><use href="#ur" transform="rotate(345 100 100)"/>
+                </g>
+              </svg>
+              <svg class="scale-step-arrow" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5 17 15.5H7Z" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="quick-control-row glass-panel">
+          <div class="control-card">
+            <label class="control-label" for="taal-select">Taal</label>
+            <select id="taal-select">
+              <option value="teentaal">Teentaal (16 Matras)</option>
+              <option value="jhaptaal">Jhaptaal (10 Matras)</option>
+            </select>
+          </div>
+
+          <div class="control-card">
+            <label class="control-label" for="instrument-select">Instrument</label>
+            <select id="instrument-select">
+              <option value="harmonium">Harmonium</option>
+              <!-- <option value="flute">Bansuri</option> -->
+              <!-- <option value="violin">Violin</option> -->
+              <option value="sitar">Sitar</option>
+              <option value="piano">Piano</option>
+              <option value="santoor" selected>Santoor</option>
+              <option value="guitar">Guitar</option>
+            </select>
+          </div>
+
+          <div class="control-card">
+            <label class="control-label" for="raag-select">Raag</label>
+            <select id="raag-select">
+              <option value="kirwani">Kirwani</option>
+              <option value="kirwani2">Kirwani 2</option>
+              <option value="des">Des</option>
+              <option value="bhimpalasi">Bhimpalasi</option>
+              <option value="janasammohini">Janasammohini</option>
+              <option value="charukeshi">Charukeshi</option>
+              <option value="jog">Jog</option>
+              <option value="darbari">Darbari Kanada</option>
+              <option value="chandrakauns">Chandrakauns</option>
+              <option value="hansadhwani">Hansadhwani</option>
+              <option value="mylehra">Charukeshi 2</option>
+              <option value="mylehra2">Mishra</option>
+              <option value="shuddha_saarang">Shuddha Saarang</option>
+              <option value="tilak_kamod">Tilak Kamod</option>
+              <option value="pilu">Pilu</option>
+              <option value="hemant" selected>Hemant</option>
+            </select>
+          </div>
+
+          <div class="control-card">
+            <label class="control-label" for="pitch-select">Scale</label>
+            <select id="pitch-select">
+              <option value="C">C (Safed 1)</option>
+              <option value="C#" selected>C# (Kali 1)</option>
+              <option value="D">D (Safed 2)</option>
+              <option value="D#">D# (Kali 2)</option>
+              <option value="E">E (Safed 3)</option>
+              <option value="F">F (Safed 4)</option>
+              <option value="F#">F# (Kali 3)</option>
+              <option value="G">G (Safed 5)</option>
+              <option value="G#">G# (Kali 4)</option>
+              <option value="A">A (Safed 6)</option>
+              <option value="A#">A# (Kali 5)</option>
+              <option value="B">B (Safed 7)</option>
+            </select>
+
+            <!-- Micro scale adjuster: a semitone is a coarse step when matching
+                 a fixed-pitch instrument or an existing recording, so this bends
+                 the reference Sa continuously between a flat and a sharp of the
+                 selected scale. Everything pitched off Sa - lehra, tanpura and
+                 the dayan - follows it. On phones it is moved under the scale
+                 dial, which is where the blueprint puts it. -->
+            <!-- Flat and sharp rather than minus and plus: this slider bends
+                 the pitch, so the direction is named the way a musician reads
+                 it. Each tap is one cent. -->
+            <div class="fine-tune-row" id="fine-tune-row">
+              <button class="fine-tune-step" id="fine-minus" aria-label="Flatten the scale by one cent">&#9837;</button>
+              <input type="range" id="pitch-fine" min="-50" max="50" value="0" step="1"
+                     aria-label="Fine tune the scale">
+              <button class="fine-tune-step" id="fine-plus" aria-label="Sharpen the scale by one cent">&#9839;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone-only controls: two self-contained panels side by side rather
+             than one ruled grid, so each is bounded by its own card and the
+             two are separated by a gap instead of a shared column line.
+             Left panel - the real #taal-select / #raag-select /
+             #instrument-select, one per tile, opening the anchored picker in
+             app.js on tap.
+             Right panel - each instrument's real play button and volume
+             slider, moved in from the mixer panel below rather than copied.
+             Tanpura's First String and Speed stay one tap away, its heading
+             there still opening sheet-tanpura. -->
+        <div class="control-sections" id="control-sections">
+          <div class="control-section" id="picker-section">
+            <div class="tile" id="tile-instrument"><span class="tile-value" id="tile-instrument-value"></span></div>
+            <div class="tile" id="tile-taal"><span class="tile-value" id="tile-taal-value"></span></div>
+            <div class="tile" id="tile-raag"><span class="tile-value" id="tile-raag-value"></span></div>
+          </div>
+
+          <div class="control-section" id="mixer-section">
+            <div class="mixer-cell" id="mixer-cell-tanpura"></div>
+            <div class="mixer-cell" id="mixer-cell-metronome"></div>
+            <div class="mixer-cell" id="mixer-cell-tabla"></div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Left Visualizer Panel -->
+          <div class="glass-panel visual-tracker-container" id="visual-tracker">
+            <div class="sam-glow-indicator" id="sam-glow"></div>
+            <!-- Avartan chakra: the cycle as a ring, one dot per matra with Sam
+                 at twelve o'clock. Drawn in app.js from the matra clock, so it
+                 keeps turning when only the tabla or the click is running. The
+                 readout at its centre stays in the DOM, below. -->
+            <canvas class="canvas-visualizer" id="visualizer"></canvas>
+            <div class="beat-display">
+              <div class="beat-number" id="beat-num">1</div>
+              <div class="beat-name" id="beat-label">SAM</div>
+              <!-- Vibhaag clap pattern, e.g. Teentaal reads X 2 0 3.
+                   The current vibhaag lights up as the cycle turns. -->
+              <div class="vibhaag-markers" id="vibhaag-markers"></div>
+            </div>
+          </div>
+
+          <!-- Right Audio Mix Controls -->
+          <div class="glass-panel mix-panel">
+            <!-- Tanpura starts with the main play button, and can also be
+                 toggled on its own here to drone while practising without lehra.
+                 The heading names the instrument, so the controls under it are
+                 left unqualified rather than repeating "Tanpura" each time. -->
+            <div class="mix-section mix-sheet" id="sheet-tanpura">
+              <div class="sheet-handle" aria-hidden="true"></div>
+
+              <div class="mix-head" id="tanpura-mix-head">
+                <button class="btn btn-round mix-play-btn" id="tanpura-play-btn" aria-label="Play Tanpura">
+                  <svg id="tanpura-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <!-- On phones this is what opens sheet-tanpura for Speed - the
+                     chevron is the only new mark, the word itself is the same
+                     "Tanpura" already used on desktop. -->
+                <h4 id="tanpura-heading">Tanpura <svg class="tanpura-settings-chevron" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></h4>
+              </div>
+
+              <!-- The first string is Sa-Pa, always. Sa-Ma is the tuning for
+                   raags that omit Pa, which is a decision about the raag rather
+                   than about the drone - and every raag this app ships a lehra
+                   for keeps its Pa. The choice was a control that existed to be
+                   left alone. -->
+              <p style="font-size: 11px; color: var(--text-muted);" id="tanpura-source-note"></p>
+
+              <div class="slider-container" id="tanpura-volume-block">
+                <div class="slider-header">
+                  <span class="control-label">Volume</span>
+                  <span class="slider-val" id="tanpura-volume-val">70%</span>
+                </div>
+                <input type="range" id="tanpura-volume" min="0" max="100" value="70">
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span class="control-label">Speed</span>
+                  <span class="slider-val" id="tanpura-speed-val">80%</span>
+                </div>
+                <input type="range" id="tanpura-speed" min="60" max="160" value="80" step="5">
+              </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--panel-border); margin: 4px 0;">
+
+            <!-- Metronome click, independent of the Lehra play button - it can
+                 run on its own or alongside the Lehra. -->
+            <div class="mix-section mix-sheet" id="sheet-metronome">
+              <div class="sheet-handle" aria-hidden="true"></div>
+
+              <div class="mix-head" id="metronome-mix-head">
+                <button class="btn btn-round mix-play-btn" id="metronome-play-btn" aria-label="Play Metronome">
+                  <svg id="metronome-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <h4>Metronome</h4>
+              </div>
+
+              <div class="slider-container" id="metronome-volume-block">
+                <div class="slider-header">
+                  <span class="control-label">Volume</span>
+                  <span class="slider-val" id="metronome-volume-val">70%</span>
+                </div>
+                <input type="range" id="metronome-volume" min="0" max="100" value="70">
+              </div>
+            </div>
+
+            <!-- The lehra's own level. Deliberately not inside the tabla sheet:
+                 on phones it belongs with the main play button, so it is moved
+                 into the drawer rather than hidden behind the Tabla tile. -->
+            <div class="slider-container" id="lehra-volume-block">
+              <div class="slider-header">
+                <span class="control-label">Lehra Volume</span>
+                <span class="slider-val" id="lehra-volume-val">70%</span>
+              </div>
+              <input type="range" id="lehra-volume" min="0" max="100" value="70">
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--panel-border); margin: 4px 0;">
+
+            <!-- Tabla theka. Like the metronome it runs on its own transport
+                 but shares the matra clock, so it always agrees with the beat
+                 tracker whether or not the Lehra is playing. -->
+            <div class="mix-section mix-sheet" id="sheet-tabla">
+              <div class="sheet-handle" aria-hidden="true"></div>
+
+              <div class="mix-head" id="tabla-mix-head">
+                <button class="btn btn-round mix-play-btn" id="tabla-play-btn" aria-label="Play Tabla">
+                  <svg id="tabla-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <h4>Tabla</h4>
+              </div>
+
+              <div class="slider-container" id="tabla-volume-block">
+                <div class="slider-header">
+                  <!-- Just "Volume": the heading directly above it already says
+                       Tabla Theka, in both layouts. -->
+                  <span class="control-label">Volume</span>
+                  <span class="slider-val" id="tabla-volume-val">70%</span>
+                </div>
+                <input type="range" id="tabla-volume" min="0" max="100" value="70">
+                <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;" id="tabla-source-note"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lehra transport, tempo and volume together in one card -->
+        <div class="glass-panel transport-panel">
+
+          <!-- Play / pause and the current selection -->
+          <div class="transport-row">
+            <div class="transport-main">
+              <button class="main-play-btn" id="play-btn" aria-label="Play Lehra">
+                <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <div class="transport-status">
+                <h4 id="status-taal-title">Teentaal Lehra</h4>
+                <p id="status-laya-desc">Harmonium • C# Pitch • Madhya Laya</p>
+              </div>
+            </div>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid var(--panel-border); margin: 0;">
+
+          <!-- The card is named for what its button does, not for the quantity
+               beside it - the BPM readout to the right already says "tempo" in
+               the only terms that matter. -->
+          <div class="slider-header">
+            <span class="control-label" style="font-size: 16px;">Play Lehra</span>
+            <span class="slider-val" id="bpm-val" style="font-size: 24px;">120 BPM</span>
+          </div>
+
+          <!-- On phones this wraps: the slider takes a full row of its own and
+               the four steppers spread out underneath as thumb-sized targets. -->
+          <!-- Halve and double sit at the ends because they are the coarse
+               moves: a lehra is practised at half and at double the laya it was
+               learnt at, so those two are one tap rather than forty on -5. -->
+          <div class="tempo-row">
+            <button class="btn btn-round bpm-step bpm-step-sm" id="bpm-half">&frac12;x</button>
+            <button class="btn btn-round bpm-step bpm-step-sm" id="bpm-minus-5">-5</button>
+            <button class="btn btn-round bpm-step" id="bpm-minus">-</button>
+            <input type="range" id="bpm-slider" min="30" max="400" value="120">
+            <button class="btn btn-round bpm-step" id="bpm-plus">+</button>
+            <button class="btn btn-round bpm-step bpm-step-sm" id="bpm-plus-5">+5</button>
+            <button class="btn btn-round bpm-step bpm-step-sm" id="bpm-double">2x</button>
+          </div>
+
+          <!-- Phone-only: the Lehra's own level, moved in here from the mixer
+               panel below so it sits right under the tempo it belongs with. -->
+          <div class="lehra-volume-slot" id="lehra-volume-slot"></div>
+
+          <div class="laya-timer-row" id="laya-timer-row">
+            <!-- The bracketed BPM is what makes these a scale rather than three
+                 opaque names, so it is shown at every width. Whichever button
+                 matches the current tempo is filled - see syncLayaButtons. -->
+            <div class="btn-group laya-group">
+              <button class="btn" id="laya-vilambit">Vilambit<span class="laya-bpm"> (60)</span></button>
+              <button class="btn" id="laya-madhya">Madhya<span class="laya-bpm"> (120)</span></button>
+              <button class="btn" id="laya-drut">Drut<span class="laya-bpm"> (240)</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone-only: the three laya presets read as a choice made about the
+             tempo card rather than a control inside it, so on phones app.js
+             moves .laya-timer-row down here, clear of the card's edge. Empty,
+             and invisible, on desktop where the row stays in the card. -->
+        <div class="laya-slot" id="laya-slot"></div>
+
+      </section>
+
+      <!-- 2. PRACTICE ANALYTICS SCREEN -->
+      <section class="screen" id="analytics-screen">
+        <h2 style="font-weight: 700;">Practice Analytics</h2>
+        <p style="color: var(--text-secondary); margin-top: -20px;">Track your Riyaaz performance and progression trends.</p>
+
+        <div class="stats-grid">
+          <div class="glass-panel stat-card">
+            <span class="control-label">Total Riyaaz</span>
+            <div class="stat-val" id="stat-total-time">0m</div>
+          </div>
+          <div class="glass-panel stat-card">
+            <span class="control-label">Sessions</span>
+            <div class="stat-val" id="stat-total-sessions">0</div>
+          </div>
+          <div class="glass-panel stat-card">
+            <span class="control-label">Top Taal</span>
+            <div class="stat-val" id="stat-favorite-taal" style="font-size: 20px; font-weight: 700; height: 48px; display: flex; align-items: center; justify-content: center;">None</div>
+          </div>
+          <div class="glass-panel stat-card">
+            <span class="control-label">Avg BPM</span>
+            <div class="stat-val" id="stat-avg-bpm">0</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="glass-panel">
+            <span class="control-label" style="display: block; margin-bottom: 20px;">Riyaaz Distribution by Week</span>
+            <div class="chart-container">
+              <canvas class="chart-canvas" id="analytics-chart"></canvas>
+            </div>
+          </div>
+          
+          <div class="glass-panel" style="display: flex; flex-direction: column; gap: 15px; max-height: 300px; overflow-y: auto;">
+            <span class="control-label">Recent Practice Logs</span>
+            <div id="analytics-log-list" style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- Dynamically populated -->
+              <p style="color: var(--text-muted); font-size: 14px; text-align: center; margin-top: 20px;">No sessions logged yet. Start practicing to record logs.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. TAAL INFORMATION SCREEN -->
+      <section class="screen" id="taal-screen">
+        <h2 style="font-weight: 700;">Taal Glossary & Information</h2>
+        <p style="color: var(--text-secondary); margin-top: -20px;">Learn about classical Indian rhythmic structures.</p>
+
+        <div id="taal-info-list" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Dynamically populated via script -->
+        </div>
+      </section>
+
+      <!-- 4. SETTINGS SCREEN -->
+      <section class="screen" id="settings-screen">
+        <h2 style="font-weight: 700;">Application Settings</h2>
+        <p style="color: var(--text-secondary); margin-top: -20px;">Customize your Tabla Practice Companion environment.</p>
+
+        <div class="glass-panel" style="display: flex; flex-direction: column; gap: 20px; max-width: 600px;">
+          <div class="toggle-row">
+            <div>
+              <h4 style="font-weight: 600;">Theme Toggle</h4>
+              <p style="font-size: 13px; color: var(--text-secondary);">Toggle between Dark Mode and Light Mode.</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="settings-theme-toggle">
+              <span class="slider-switch"></span>
+            </label>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid var(--panel-border);">
+
+          <div class="slider-container">
+            <label class="control-label" for="settings-default-taal">Default Taal</label>
+            <select id="settings-default-taal">
+              <option value="teentaal">Teentaal (16 Matras)</option>
+              <option value="jhaptaal">Jhaptaal (10 Matras)</option>
+            </select>
+          </div>
+
+          <!-- The same list as #raag-select on the player, kept in the same
+               order so the two read alike. Hemant is the shipped default. -->
+          <div class="slider-container">
+            <label class="control-label" for="settings-default-raag">Default Raag</label>
+            <select id="settings-default-raag">
+              <option value="kirwani">Kirwani</option>
+              <option value="kirwani2">Kirwani 2</option>
+              <option value="des">Des</option>
+              <option value="bhimpalasi">Bhimpalasi</option>
+              <option value="janasammohini">Janasammohini</option>
+              <option value="charukeshi">Charukeshi</option>
+              <option value="jog">Jog</option>
+              <option value="darbari">Darbari Kanada</option>
+              <option value="chandrakauns">Chandrakauns</option>
+              <option value="hansadhwani">Hansadhwani</option>
+              <option value="mylehra">Charukeshi 2</option>
+              <option value="mylehra2">Mishra</option>
+              <option value="shuddha_saarang">Shuddha Saarang</option>
+              <option value="tilak_kamod">Tilak Kamod</option>
+              <option value="pilu">Pilu</option>
+              <option value="hemant" selected>Hemant</option>
+            </select>
+          </div>
+
+          <div class="slider-container">
+            <label class="control-label" for="settings-default-instrument">Default Instrument</label>
+            <select id="settings-default-instrument">
+              <option value="harmonium">Harmonium</option>
+              <!-- <option value="flute">Bansuri</option> -->
+              <!-- <option value="violin">Violin</option> -->
+              <option value="sitar">Sitar</option>
+              <option value="piano">Piano</option>
+              <option value="santoor" selected>Santoor</option>
+              <option value="guitar">Guitar</option>
+            </select>
+          </div>
+
+          <div class="slider-container">
+            <label class="control-label" for="settings-default-pitch">Default Pitch</label>
+            <select id="settings-default-pitch">
+              <option value="C">C</option>
+              <option value="C#" selected>C#</option>
+              <option value="D">D</option>
+              <option value="D#">D#</option>
+              <option value="E">E</option>
+              <option value="F">F</option>
+              <option value="F#">F#</option>
+              <option value="G">G</option>
+              <option value="G#">G#</option>
+              <option value="A">A</option>
+              <option value="A#">A#</option>
+              <option value="B">B</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" id="settings-save-btn" style="margin-top: 10px;">Save Configuration Defaults</button>
+
+          <hr style="border: 0; border-top: 1px solid var(--panel-border);">
+
+          <div>
+            <h4 style="font-weight: 600; margin-bottom: 6px;">Credits</h4>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+              Tanpura recordings by <strong>Sankalp Gulati</strong>, recorded at Dhrupad Sansar,
+              IIT Bombay for the CompMusic project. Sourced from
+              <a href="https://freesound.org/people/sankalp/packs/9571/" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">Freesound</a>
+              and used under the
+              <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">CC BY 4.0</a> licence.
+            </p>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-top: 10px;">
+              Tabla strokes by <strong>msarkar</strong>, from the
+              <a href="https://freesound.org/people/msarkar/packs/3571/" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">tabla bols</a>
+              pack on Freesound, used under the
+              <a href="https://creativecommons.org/licenses/sampling+/1.0/" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">CC Sampling Plus 1.0</a> licence.
+            </p>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-top: 10px;">
+              Violin recordings from the
+              <a href="https://vis.versilstudios.net/vsco-community.html" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">Versilian Studios Chamber Orchestra 2 (Community Edition)</a>,
+              via the sliced set at
+              <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">tonejs-instruments</a>, used under
+              <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">CC BY 3.0</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Mobile Navigation Bar (Fixed bottom) -->
+    <nav class="mobile-nav">
+      <a class="mobile-nav-item active" data-target="player-screen">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+        <span>Player</span>
+      </a>
+      <a class="mobile-nav-item" data-target="analytics-screen">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        <span>Stats</span>
+      </a>
+      <a class="mobile-nav-item" data-target="taal-screen">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        <span>Glossary</span>
+      </a>
+      <a class="mobile-nav-item" data-target="settings-screen">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        <span>Prefs</span>
+      </a>
+    </nav>
+
+  </div>
+
+  <!-- Outside .app-container on purpose: that element carries a backdrop-filter
+       on desktop, which would make it the containing block for anything fixed
+       inside it and trap these two behind its rounded, clipped box. -->
+  <div class="app-scrim" id="app-scrim"></div>
+
+  <!-- Screensaver. The avartan chakra is moved in here on phones, where the
+       single-screen layout has no room for it, and takes over the display after
+       30s of uninterrupted playing (SCREENSAVER_DELAY_MS in app.js). Tap
+       anywhere to come back. -->
+  <div class="screensaver" id="screensaver"></div>
+
+  <script src="taal_data.js?v=13.0"></script>
+  <script src="tanpura-dsp.js?v=13.0"></script>
+  <!-- Must precede audio.js, which instantiates the engine on load. -->
+  <script src="instruments.js?v=13.0"></script>
+  <script src="tabla.js?v=13.0"></script>
+  <script src="audio.js?v=13.0"></script>
+  <script src="analytics.js?v=13.0"></script>
+  <script src="app.js?v=13.0"></script>
+</body>
+</html>

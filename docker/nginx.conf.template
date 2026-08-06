@@ -1,0 +1,77 @@
+# Cache policy, as a lookup rather than as per-location headers.
+#
+# This is a map and not a set of `add_header` lines inside each location for one
+# specific reason: nginx's add_header does not merge down. A location block that
+# declares any add_header of its own silently discards every add_header
+# inherited from the server block - so putting Cache-Control in the locations
+# would have quietly dropped the security headers from exactly the paths that
+# serve the app. One map here, one add_header at server level, and both survive.
+#
+# Exact matches are tested before regexes regardless of the order written.
+map $uri $cache_control {
+    # Versioned assets. index.html carries ?v= stamps that bust every script and
+    # the stylesheet, so a day is safe for them and self-heals if a stamp is
+    # ever forgotten.
+    default                        "public, max-age=86400";
+
+    # The document that carries those stamps is the one file that must never be
+    # served stale, or a deploy is invisible until the browser feels like
+    # checking.
+    "/"                            "no-cache";
+    "/index.html"                  "no-cache";
+
+    "/healthz"                     "no-store";
+
+    # 172 files, ~6.4MB, and the names encode the contents - santoor C4 is
+    # always santoor C4. Nothing here is ever edited in place.
+    ~^/audio/                      "public, max-age=31536000, immutable";
+
+    # These two are the exception to the ?v= scheme. audio.js reaches for them
+    # with `new Worker("tanpura-worker.js")`, which then importScripts
+    # "tanpura-dsp.js" - both unstamped, because a Worker URL is not written by
+    # the page's <script> tags. Query-string busting cannot reach them, so they
+    # get a short TTL instead of a long one.
+    ~^/tanpura-(?:worker|dsp)\.js$ "public, max-age=300";
+}
+
+server {
+    listen      ${PORT};
+    server_name _;
+    root        /usr/share/nginx/html;
+    index       index.html;
+
+    charset       utf-8;
+    server_tokens off;
+
+    # Byte ranges are on by default and are worth not breaking: they are what
+    # let the tanpura samples seek without refetching a megabyte.
+    #
+    # mp3 is left out of gzip on purpose - it is already compressed, so zipping
+    # it spends CPU to make the response marginally larger.
+    gzip            on;
+    gzip_vary       on;
+    gzip_min_length 1024;
+    gzip_types      text/plain text/css application/javascript application/json image/svg+xml;
+
+    # No Cross-Origin-Opener-Policy or -Embedder-Policy here, deliberately. The
+    # tanpura time-stretcher is a classic Worker with importScripts, not an
+    # AudioWorklet and not backed by SharedArrayBuffer, so nothing in this app
+    # needs cross-origin isolation - and switching it on would block the Google
+    # Fonts stylesheet the page loads, taking Cormorant and Inter with it.
+    add_header X-Content-Type-Options nosniff              always;
+    add_header X-Frame-Options        SAMEORIGIN           always;
+    add_header Referrer-Policy        strict-origin-when-cross-origin always;
+    add_header Cache-Control          $cache_control       always;
+
+    # Deliberately has no add_header of its own - see the note on the map above.
+    # default_type sets the content type without touching the header set.
+    location = /healthz {
+        access_log   off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

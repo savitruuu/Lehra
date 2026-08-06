@@ -1,0 +1,3377 @@
+/* Lehra app stylesheet.
+
+   Two design systems live in here, split by viewport:
+     - desktop (>900px): the original glassmorphism dashboard, untouched.
+     - phones (<=900px): "parchment" - a warm paper ground and a terracotta
+       accent. Everything specific to it is in the block at the foot of this
+       file.
+
+   The two share one type system. They did not before: desktop was set in Google
+   Sans Flex and the phone in Inter and Cormorant, so the same app was three
+   faces depending on where you looked at it. Now there are two, everywhere, and
+   each has one job. */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Classical face for names and readouts, grotesque for the interface and its
+     numbers. Used at both sizes - see the * rule and the display list below. */
+  --font-display: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  --font-ui: 'Inter', 'Manrope', system-ui, sans-serif;
+
+  /* Native widgets (dropdown popups, scrollbars) follow this, not our vars. */
+  color-scheme: dark;
+
+  /* Dropdown list colors - must be opaque, see the select rules below. */
+  --select-bg: #162925;
+  --select-text: #fff4e1;
+  --select-active: #2f5a50;
+
+  /* Dark Mode - Default: #1a312c deep forest + #fff4e1 warm cream text */
+  --bg-primary: #1a312c;
+  --bg-secondary: #213d37;
+  --bg-gradient: linear-gradient(145deg, #1a312c 0%, #213d37 50%, #2a4a43 100%);
+  --panel-bg: rgba(66, 132, 117, 0.15);
+  --panel-border: rgba(137, 215, 183, 0.18);
+
+  --text-primary: #fff4e1;
+  --text-secondary: #89d7b7;
+  --text-muted: #5a8a7a;
+
+  --accent-cyan: #89d7b7;
+  --accent-cyan-glow: rgba(137, 215, 183, 0.4);
+  --accent-purple: #428475;
+  --accent-purple-glow: rgba(66, 132, 117, 0.45);
+  --accent-gold: #fbbf24;
+  --accent-gold-glow: rgba(251, 191, 36, 0.45);
+  --accent-red: #ef4444;
+
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Height of the fixed bottom bar on phones, and the strip of screen the
+     device reserves below it (iPhone home indicator). The scroller pads itself
+     by the sum so the last control is never trapped under the bar. */
+  --mobile-nav-h: 60px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body.dark-mode {
+  color-scheme: light;
+
+  --select-bg: #ffffff;
+  --select-text: #1a312c;
+  --select-active: #d6ece2;
+
+  /* Light Mode: #fff4e1 warm cream bg + #1a312c dark green text */
+  --bg-primary: #fff4e1;
+  --bg-secondary: #f5e9d0;
+  --bg-gradient: linear-gradient(145deg, #fff4e1 0%, #f0e4ce 100%);
+  --panel-bg: rgba(255, 255, 255, 0.8);
+  --panel-border: rgba(66, 132, 117, 0.2);
+
+  --text-primary: #1a312c;
+  --text-secondary: #428475;
+  --text-muted: #7aab9c;
+
+  --accent-cyan: #428475;
+  --accent-cyan-glow: rgba(66, 132, 117, 0.3);
+  --accent-purple: #89d7b7;
+  --accent-purple-glow: rgba(137, 215, 183, 0.3);
+  --accent-gold: #c2880f;
+  --accent-gold-glow: rgba(194, 136, 15, 0.3);
+  --accent-red: #dc2626;
+
+  --card-shadow: 0 8px 32px rgba(26, 49, 44, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-ui);
+  user-select: none;
+}
+
+/* The display face, in one list rather than scattered through the phone block.
+   Everything named here is either something the app is naming - an instrument, a
+   taal, a screen - or a reading taken off it. Everything else, including every
+   label, unit and percentage, is the UI face above.
+
+   Two rules, not one: the * selector overrides inherited fonts on every element,
+   so a heading's own children (the chevron in "Tanpura", the bracketed BPM in
+   "Madhya (120)") would fall back to the sans without the descendant list. */
+h1, h2, h3, h4,
+.brand-name,
+.scale-note,
+.tile .control-label,
+.taal-info-header,
+.stat-val,
+.laya-group .btn,
+h1 *, h2 *, h3 *, h4 *,
+.laya-group .btn * {
+  font-family: var(--font-display);
+}
+
+body {
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  /* dvh, not vh, or the document stays taller than the visible area while a
+     mobile address bar is showing and the whole page gains a second scrollbar
+     on top of the one inside .main-content. Identical to vh on desktop. */
+  min-height: 100dvh;
+  overflow-x: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.5s ease;
+  /* Grey flash on every tap otherwise, on the buttons and the nav alike. */
+  -webkit-tap-highlight-color: transparent;
+  /* The app shell scrolls internally, so the document itself never should -
+     this stops the rubber-band drag and pull-to-refresh on phones. */
+  overscroll-behavior-y: none;
+}
+
+/* App Container */
+.app-container {
+  width: 95%;
+  max-width: 1200px;
+  height: 90vh;
+  margin: auto;
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  box-shadow: var(--card-shadow);
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+/* Phone shell: the container is exactly one viewport tall and splits into a
+   fixed header row plus a scrolling body, instead of the old height maths that
+   assumed a 71px header. dvh tracks the retracting address bar, so nothing is
+   left stranded under it; the vh line above is the fallback for browsers
+   without dvh. */
+@media (max-width: 900px) {
+  .app-container {
+    width: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    margin: 0;
+    border-radius: 0;
+    border: 0;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    /* A full-screen backdrop blur is a per-frame GPU cost on a phone, and here
+       it sits over a flat gradient where it shows nothing. The panels inside
+       keep their own translucency. */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Sidebar Navigation */
+.sidebar {
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid var(--panel-border);
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    display: none; /* We will use a mobile header */
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px var(--accent-cyan-glow);
+}
+
+.brand-logo svg {
+  fill: #fff;
+  width: 24px;
+  height: 24px;
+}
+
+.brand-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: linear-gradient(to right, var(--text-primary), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-menu {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.nav-item:hover, .nav-item.active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item.active {
+  background: linear-gradient(90deg, var(--accent-cyan-glow) 0%, rgba(255, 255, 255, 0) 100%);
+  border-left: 3px solid var(--accent-cyan);
+  box-shadow: inset 4px 0 8px rgba(0, 242, 254, 0.05);
+}
+
+.nav-item svg {
+  width: 20px;
+  height: 20px;
+  transition: var(--transition);
+}
+
+.nav-item:hover svg, .nav-item.active svg {
+  transform: scale(1.1);
+  color: var(--accent-cyan);
+}
+
+/* Mobile Header */
+.mobile-header {
+  display: none;
+  background: var(--bg-secondary);
+  padding: 15px 20px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+@media (max-width: 900px) {
+  .mobile-header {
+    display: flex;
+    /* Clears the notch in landscape, and the status bar when installed to the
+       home screen where the page paints under it. */
+    padding: max(15px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px))
+             15px max(20px, env(safe-area-inset-left, 0px));
+  }
+
+  /* The brand margin is tuned for the sidebar stack; in the header row it just
+     pushes the logo off-centre. */
+  .mobile-header .brand {
+    margin-bottom: 0;
+  }
+}
+
+.mobile-menu-btn {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Main Content Area */
+.main-content {
+  padding: 40px;
+  height: 100%;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* The grid row already gives this the leftover height; min-height:0 is what
+   actually lets it shrink and scroll rather than pushing the shell taller.
+   The bottom padding clears the fixed nav bar and the home indicator. */
+@media (max-width: 900px) {
+  .main-content {
+    padding: 20px 20px calc(var(--mobile-nav-h) + var(--safe-bottom) + 20px);
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+    height: auto;
+    min-height: 0;
+    gap: 20px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Screens */
+.screen {
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glass Panel Styling */
+.glass-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* UI Grid layout for Home Dashboard */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Player Header Controls */
+.quick-control-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.control-card {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.control-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* The open dropdown list is painted by the OS, not by this stylesheet, so it
+   ignores the glassmorphism styling below and follows --select-* instead.
+   Those must be fully opaque: a translucent value gets composited against the
+   OS menu backdrop rather than the panel, which is what made the list
+   unreadable. color-scheme is the other half of the fix - it tells the browser
+   which set of native widget colors to start from, so the popup's own
+   scrollbar, borders and hover highlight come out light or dark to match. */
+select, input[type="number"] {
+  width: 100%;
+  padding: 12px;
+  background: var(--select-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 15px;
+  outline: none;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+select:focus, input[type="number"]:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-cyan-glow);
+}
+
+select option {
+  background-color: var(--select-bg);
+  color: var(--select-text);
+}
+
+select option:checked {
+  background-color: var(--select-active);
+  color: var(--select-text);
+}
+
+/* Giant Beat & visual tracker */
+.visual-tracker-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 300px;
+}
+
+.sam-glow-indicator {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-gold-glow) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.sam-glow-indicator.active {
+  opacity: 1;
+  transform: scale(1.4);
+}
+
+.canvas-visualizer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.beat-display {
+  z-index: 2;
+  text-align: center;
+}
+
+.beat-number {
+  font-size: 80px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 30%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+/* Devanagari stack for the bols. The body font is a Latin face with no
+   Devanagari coverage, so without naming one here the glyphs would come from
+   whatever the browser picked as a last resort, at a size and weight that had
+   nothing to do with the rest of the page. */
+.bol-deva,
+.beat-name {
+  font-family: "Nirmala UI", "Noto Sans Devanagari", "Mangal", "Kohinoor Devanagari", sans-serif;
+}
+
+.beat-name {
+  font-size: 26px;
+  color: var(--accent-gold);
+  font-weight: 600;
+  /* No letter-spacing or uppercasing: Devanagari is not a bicameral script, and
+     spacing it out breaks the conjuncts and the matra that sit above the line. */
+  line-height: 1.4;
+}
+
+/* The Latin reading under the Devanagari theka in the taal glossary. */
+.theka-latin {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+
+/* Vibhaag clap pattern under the beat number: X 2 0 3 for Teentaal.
+   The vibhaag containing the current matra is highlighted. */
+.vibhaag-markers {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.vibhaag-mark {
+  /* min-width rather than a fixed width, so two-digit matra numbers
+     (Teentaal's 13) sit comfortably without squashing. */
+  min-width: 30px;
+  padding: 0 6px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+/* Sam carries the gold accent used by the sam glow elsewhere. */
+.vibhaag-mark.sam {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* Khali is the open-hand wave, so it reads deliberately dimmer than a tali. */
+.vibhaag-mark.khali {
+  color: var(--text-muted);
+  border-style: dashed;
+}
+
+.vibhaag-mark.active {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  color: #fff;
+  border-color: transparent;
+  transform: scale(1.15);
+  box-shadow: 0 0 12px var(--accent-cyan-glow);
+}
+
+.vibhaag-mark.sam.active {
+  background: linear-gradient(135deg, var(--accent-gold), #f59e0b);
+  box-shadow: 0 0 16px var(--accent-gold-glow);
+}
+
+/* Only ever says anything when a tanpura sample could not be loaded, and it is
+   now a direct child of the sheet's flex column rather than tucked inside the
+   First String block that used to hold it - so when it is empty, which is nearly
+   always, it would otherwise contribute a full row gap of nothing. */
+#tanpura-source-note:empty {
+  display: none;
+}
+
+/* Control Sliders & Custom Range Inputs */
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.slider-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan-glow);
+  transition: var(--transition);
+}
+
+/* Firefox draws its own thumb and ignores the WebKit pseudo-element. */
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan-glow);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Touch input: a 6px track is a 6px target. The padding widens the grabbable
+   band to ~34px while background-clip keeps the visible track its original
+   thickness, and the thumb grows to something a fingertip can land on. */
+@media (pointer: coarse) {
+  input[type="range"] {
+    /* content-box on purpose: the global border-box would swallow the padding
+       into the 8px and leave no track at all. */
+    box-sizing: content-box;
+    height: 8px;
+    padding: 13px 0;
+    background-clip: content-box;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    width: 26px;
+    height: 26px;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* Control Buttons and Groups */
+.btn-group {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition);
+  outline: none;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text-secondary);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 20px rgba(0, 242, 254, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-round {
+  width: 45px;
+  height: 45px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Main Large Play Button */
+.main-play-btn {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 25px var(--accent-cyan-glow);
+  transition: var(--transition);
+  margin: 0 auto;
+}
+
+.main-play-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 30px rgba(0, 242, 254, 0.6);
+}
+
+.main-play-btn svg {
+  width: 38px;
+  height: 38px;
+  fill: currentColor;
+}
+
+/* --- Micro scale adjuster --- */
+/* Bends the reference Sa continuously between a flat and a sharp of the chosen
+   scale. Lives under the Scale select on desktop and under the scale dial on
+   phones. */
+.fine-tune-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fine-tune-row input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Marked with the flat and sharp signs rather than minus and plus, so the
+   direction is named the way a musician reads it. The body font is a UI face
+   with no guaranteed coverage of the musical symbols block, so a stack that
+   does have it is named here - otherwise the glyphs come from whatever the
+   browser picks as a last resort, at a weight and size unrelated to the rest
+   of the page. Flex centring because these two sit off the baseline
+   differently from each other, and a button's default centring leaves the
+   flat visibly high. */
+.fine-tune-step {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  font-family: "Segoe UI Symbol", "Noto Music", "Noto Sans Symbols 2",
+               "Arial Unicode MS", sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fine-tune-step:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Audio mix panel (tanpura / tabla / metronome) --- */
+.mix-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Each instrument's controls are grouped so the phone layout can lift them out
+   as bottom sheets. On desktop the grouping is invisible: the section repeats
+   the panel's own column and gap, so the stack reads exactly as before. */
+.mix-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Grabber at the top of a bottom sheet - phones only. */
+.sheet-handle {
+  display: none;
+}
+
+.mix-panel select {
+  padding: 8px 12px;
+}
+
+.mix-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mix-head h4 {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.mix-play-btn {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.mix-play-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* --- Phone-only furniture ---
+   Declared off here and switched on inside the phone layout block at the foot
+   of this file, so the desktop layout never has to know these exist. */
+.scale-hero-wrap,
+.control-sections,
+.lehra-volume-slot,
+.laya-slot,
+.drawer-close-btn,
+.drawer-extras,
+.app-scrim,
+.screensaver,
+.tile-picker,
+.tanpura-settings-chevron,
+.lotus-mark,
+.mandala-ring {
+  display: none;
+}
+
+/* --- Lehra transport, tempo and laya --- */
+.transport-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.transport-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.transport-main {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.transport-status h4 {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.transport-status p {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.kbd-hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kbd {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  border: 1px solid var(--panel-border);
+}
+
+.kbd-sep {
+  margin: 0 2px;
+  opacity: 0.5;
+}
+
+.tempo-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.tempo-row input[type="range"] {
+  flex-grow: 1;
+}
+
+.bpm-step {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+}
+
+.bpm-step-sm {
+  font-size: 14px;
+}
+
+.laya-timer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+/* Analytics & Dashboard Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-val {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+/* Chart Canvas */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 250px;
+}
+
+.chart-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Toggle Switch */
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-switch {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255,255,255,0.1);
+  transition: .4s;
+  border-radius: 34px;
+  border: 1px solid var(--panel-border);
+}
+
+.slider-switch:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider-switch {
+  background-color: var(--accent-cyan);
+}
+
+input:checked + .slider-switch:before {
+  transform: translateX(24px);
+}
+
+/* Mobile drawer toggles and footer navigation */
+.mobile-nav {
+  display: none;
+  background: var(--bg-secondary);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--mobile-nav-h);
+  border-top: 1px solid var(--panel-border);
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 100;
+}
+
+@media (max-width: 900px) {
+  .mobile-nav {
+    display: grid;
+    /* Grow into the home-indicator strip rather than sitting above it, so the
+       bar still looks anchored to the bottom edge. The icons stay in the top
+       var(--mobile-nav-h) of it. */
+    height: calc(var(--mobile-nav-h) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: var(--bg-secondary);
+    /* The nav floats over the scrolling content, so it needs to be opaque
+       enough to read against whatever passes underneath. */
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.18);
+  }
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  /* Long-pressing a nav item used to pop the text-selection callout. */
+  -webkit-touch-callout: none;
+  transition: color 0.2s ease;
+}
+
+.mobile-nav-item.active {
+  color: var(--accent-cyan);
+}
+
+.mobile-nav-item:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mobile-nav-item svg {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 2px;
+}
+
+/* Taal info list */
+.taal-info-card {
+  margin-bottom: 20px;
+}
+.taal-info-header {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.taal-details-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+}
+.taal-details-item {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  color: var(--text-secondary);
+  border: 1px solid var(--panel-border);
+}
+.taal-details-item strong {
+  color: var(--text-primary);
+}
+
+/* Mobile responsive optimization (< 600px) */
+@media (max-width: 600px) {
+  :root {
+    --mobile-nav-h: 64px;
+  }
+
+  .main-content {
+    padding: 14px 14px calc(var(--mobile-nav-h) + var(--safe-bottom) + 16px);
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(14px, env(safe-area-inset-right, 0px));
+    gap: 16px;
+  }
+
+  .screen.active {
+    gap: 16px;
+  }
+
+  /* Screen headings: the browser default 2em is oversized on a phone, and the
+     -20px pull on the sub-heading below each one is tuned for it. */
+  .screen h2 {
+    font-size: 21px;
+  }
+
+  .screen > p {
+    font-size: 13px;
+    margin-top: -8px !important;
+  }
+
+  .glass-panel {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .dashboard-grid {
+    gap: 16px;
+  }
+
+  /* --- Quick selects: two per row --- */
+  .quick-control-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .control-card {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .control-card label {
+    font-size: 11px;
+  }
+
+  /* 16px is not a style choice: iOS Safari zooms the whole page in when a
+     control smaller than that takes focus, and never zooms back out. The
+     padding comes down instead to keep the rows compact. */
+  select,
+  .mix-panel select,
+  input[type="number"] {
+    padding: 11px 10px;
+    font-size: 16px;
+    border-radius: 10px;
+    /* Long option text ellipsises rather than widening the grid column. */
+    text-overflow: ellipsis;
+  }
+
+  /* --- Beat tracker --- */
+  .visual-tracker-container {
+    /* Tall enough that the readout stack clears the avartan ring drawn behind
+       it - the ring radius is derived from this box. */
+    min-height: 260px;
+  }
+
+  .sam-glow-indicator {
+    width: 150px;
+    height: 150px;
+  }
+
+  .beat-number {
+    font-size: 58px;
+  }
+
+  .beat-name {
+    font-size: 20px;
+  }
+
+  .vibhaag-markers {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .vibhaag-mark {
+    min-width: 26px;
+    height: 24px;
+    font-size: 11px;
+    padding: 0 4px;
+  }
+
+  /* --- Transport --- */
+  .mix-panel {
+    gap: 16px;
+  }
+
+  /* Kept square against the 44px min-height the buttons pick up below. */
+  .mix-play-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .transport-panel,
+  .transport-row {
+    gap: 16px;
+  }
+
+  .transport-main {
+    gap: 14px;
+  }
+
+  .main-play-btn {
+    width: 68px;
+    height: 68px;
+    flex-shrink: 0;
+  }
+
+  .main-play-btn svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .transport-status h4 {
+    font-size: 16px;
+  }
+
+  .transport-status p {
+    font-size: 11px;
+  }
+
+  /* No physical keyboard to shortcut with. */
+  .kbd-hint {
+    display: none;
+  }
+
+  #bpm-val {
+    font-size: 22px !important;
+  }
+
+  /* Steppers on their own row under a full-width slider: at 360px the old
+     single row left the slider about a centimetre wide. */
+  .tempo-row {
+    flex-wrap: wrap;
+    gap: 12px 8px;
+  }
+
+  .tempo-row input[type="range"] {
+    order: -1;
+    flex: 1 0 100%;
+  }
+
+  .bpm-step {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .laya-timer-row {
+    gap: 14px;
+  }
+
+  /* The three laya presets share the row evenly instead of overflowing. */
+  .laya-group {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .laya-group .btn {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 6px;
+    font-size: 12px;
+  }
+
+  .btn {
+    padding: 11px 14px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  /* .btn-round zeroes its padding, but it is declared earlier in this file, so
+     at equal specificity the rule above would win and put the padding back.
+     On a round button that padding is measured out of the fixed width by
+     box-sizing:border-box, leaving small ones with no room for their icon at
+     all - restated here so the round variant keeps its own geometry. */
+  .btn-round {
+    padding: 0;
+  }
+
+  /* --- Bottom nav --- */
+  .mobile-nav-item {
+    font-size: 10px;
+  }
+
+  .mobile-nav-item svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* --- Analytics --- */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-val {
+    font-size: 24px;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
+
+  /* --- Taal glossary --- */
+  .taal-info-header {
+    font-size: 16px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .taal-details-list {
+    gap: 8px;
+  }
+
+  .taal-details-item {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  /* --- Settings --- */
+  .toggle-row {
+    gap: 16px;
+  }
+}
+
+/* Very narrow handsets (iPhone SE and similar) */
+@media (max-width: 380px) {
+  .quick-control-row {
+    gap: 8px;
+  }
+
+  .beat-number {
+    font-size: 50px;
+  }
+
+  .laya-group .btn {
+    font-size: 11px;
+    padding: 11px 4px;
+  }
+
+  .mobile-nav-item {
+    font-size: 9px;
+  }
+}
+
+/* Phone held sideways: vertical space is the scarce dimension, so the beat
+   tracker stops reserving a tall square and the paddings tighten. */
+@media (max-width: 900px) and (max-height: 480px) and (orientation: landscape) {
+  .visual-tracker-container {
+    min-height: 200px;
+  }
+
+  .beat-number {
+    font-size: 44px;
+    margin-bottom: 0;
+  }
+
+  .beat-name {
+    font-size: 17px;
+  }
+
+  .main-content {
+    gap: 12px;
+  }
+
+  .glass-panel {
+    padding: 14px;
+  }
+
+  .main-play-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  .main-play-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Touch devices: :hover sticks after a tap on mobile, leaving buttons stuck in
+   their hover state until something else is touched. Feedback moves to :active,
+   which actually corresponds to a finger being down. */
+@media (hover: none) {
+  .btn:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--panel-border);
+  }
+
+  .btn:active {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--text-secondary);
+  }
+
+  .btn-primary:hover {
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .main-play-btn:hover {
+    transform: none;
+    box-shadow: 0 8px 25px var(--accent-cyan-glow);
+  }
+
+  .main-play-btn:active {
+    transform: scale(0.94);
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   PHONE PLAYER: ONE SCREEN, NO SCROLLING
+
+   Everything below is scoped to the phone breakpoint and deliberately sits at
+   the end of the file, so it takes precedence over the incremental mobile
+   tweaks above rather than fighting them at equal specificity.
+
+   The player becomes a fixed-height column - scale dial, launcher grid,
+   transport - that divides the viewport between its three bands instead of
+   growing past it. Anything that does not fit that shape moves elsewhere: the
+   mixer controls into bottom sheets behind their tile, the beat tracker into
+   the screensaver, and the odds and ends (record, practice timer, lehra level)
+   into the drawer. None of it is duplicated markup - app.js relocates the real
+   elements, and moves them back if the viewport grows.
+   ========================================================================== */
+@media (max-width: 900px) {
+
+  /* --- Drawer (the sidebar, slid in from the left) --- */
+  .sidebar {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 84vw);
+    z-index: 300;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--panel-border);
+    padding: max(24px, env(safe-area-inset-top, 0px)) 18px
+             calc(24px + var(--safe-bottom)) max(18px, env(safe-area-inset-left, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translateX(-101%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .drawer-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin: 0 0 8px auto;
+    border: 1px solid var(--panel-border);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .drawer-close-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Relocated controls land here, under the nav. */
+  .drawer-extras {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  /* Which is what it is, now that the record button and the practice-timer
+     dropdown are gone. Kept as the slot for anything the player card cannot
+     hold in future - see initMobileLayout. */
+  .drawer-extras:empty {
+    display: none;
+  }
+
+  /* Dims the app behind the drawer and behind an open sheet. */
+  .app-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+  }
+
+  .app-scrim.open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* --- Shell --- */
+  .mobile-header {
+    /* The hamburger sits at the left edge, the practice clock at the right. */
+    gap: 12px;
+    padding: max(10px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px))
+             10px max(10px, env(safe-area-inset-left, 0px));
+    background: transparent;
+    border-bottom: 0;
+  }
+
+  /* The name is already at the top of the drawer; on a screen budgeted to the
+     pixel it is the first thing that can go. */
+  .mobile-header .brand {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-right: auto;
+    border-radius: 12px;
+  }
+
+  .mobile-menu-btn svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* The bottom bar is gone: its five destinations are in the drawer, and the
+     player needs the height back. */
+  .mobile-nav {
+    display: none;
+  }
+
+  .main-content {
+    padding: 0 max(14px, env(safe-area-inset-left, 0px))
+             calc(12px + var(--safe-bottom)) max(14px, env(safe-area-inset-right, 0px));
+    gap: 0;
+  }
+
+  /* The other four screens still scroll; only the player is pinned. */
+  body.player-active .main-content {
+    overflow: hidden;
+  }
+
+  /* flex rather than height:100% - .main-content is itself a flex column, and a
+     percentage height against it resolves to nothing. Filling the row it was
+     given is what keeps the player exactly one viewport tall. */
+  #player-screen.active {
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: clamp(8px, 2vh, 18px);
+    padding-bottom: 4px;
+  }
+
+  /* --- Scale dial ---
+     Deliberately the smallest thing on the screen: the mini mixer below needs
+     the room, and the dial's job is a quick glance and a tap, not to dominate
+     the layout. */
+  .scale-hero-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(4px, 1vh, 8px);
+    flex-shrink: 0;
+  }
+
+  .scale-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 4vw, 22px);
+    width: 100%;
+  }
+
+  /* Sized against the shorter axis as well as the width, so turning the phone
+     sideways shrinks the dial instead of pushing the transport off the bottom -
+     the layout has no scrollbar to fall back on. */
+  .scale-step {
+    flex-shrink: 0;
+    width: clamp(32px, min(10vw, 6vh), 46px);
+    height: clamp(32px, min(10vw, 6vh), 46px);
+    padding: 0;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--accent-cyan);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* The arrow glyph by name, not `.scale-step svg` - the corona is a second svg
+     inside the same button, and a descendant match would size it to the button
+     and undo the collar it is positioned into. */
+  .scale-step-arrow {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 8px var(--accent-cyan-glow));
+  }
+
+  .scale-step:active {
+    transform: scale(0.9);
+  }
+
+  .scale-orb {
+    flex-shrink: 0;
+    width: clamp(60px, min(22vw, 13vh), 100px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid var(--panel-border);
+    background: var(--panel-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .scale-orb:active {
+    transform: scale(0.96);
+  }
+
+  .scale-note {
+    font-size: clamp(18px, min(7vw, 4.4vh), 30px);
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-cyan) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* The sounding frequency of Sa, so the fine-tune slider has something to aim
+     at when matching another instrument. */
+  .scale-freq {
+    font-size: clamp(8px, 2.4vw, 10px);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+
+  /* The fine-tune offset in cents - "0" at rest, signed once it's been moved
+     either way. */
+  .scale-cents {
+    font-size: clamp(9px, 2.6vw, 11px);
+    font-weight: 700;
+    color: var(--accent-cyan);
+  }
+
+  .scale-hero-wrap .fine-tune-row {
+    width: min(100%, 360px);
+    padding: 0 6px;
+  }
+
+  /* The Scale card is the dial now, and the other three selects have moved into
+     the launcher grid, so the whole desktop row goes. */
+  #player-screen .quick-control-row {
+    display: none;
+  }
+
+  /* --- Control sections --- */
+  /* Two self-contained panels rather than one ruled grid: pickers on the left,
+     the instrument mixer on the right, each bounded by its own card and
+     separated by a gap instead of a shared column rule. */
+  .control-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .control-section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    /* Keeps the rows' own corners inside the card's rounded edge. */
+    overflow: hidden;
+  }
+
+  /* The three rows split their panel evenly, so a row in one panel lines up
+     with the row beside it in the other even though their contents differ in
+     natural height. */
+  .control-section > * {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  /* Rows are separated from each other, not ruled into a grid - the card's own
+     border does the outer work. */
+  .control-section > * + * {
+    border-top: 1px solid var(--panel-border);
+  }
+
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    padding: clamp(4px, 0.9vh, 10px) 8px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .tile:active {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* The relocated <label> and the value span read as one thing. The order
+     keeps the name above the value however the label lands in the tile - it is
+     appended after the value span, not before it. */
+  .tile .control-label {
+    order: 1;
+    font-size: clamp(13px, 3.9vw, 16px);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-primary);
+    pointer-events: none;
+  }
+
+  /* What is currently chosen. Not a new label - it is the option the select is
+     already on, which the tile would otherwise hide. */
+  .tile-value {
+    order: 2;
+    font-size: clamp(10px, 2.9vw, 12px);
+    color: var(--accent-cyan);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* The real select stays in the DOM as the value store for its tile, but
+     stays out of the way rather than being laid over it - the tile itself
+     handles the tap and opens .tile-picker below instead of the platform's own
+     full-screen list. */
+  .tile select {
+    display: none;
+  }
+
+  /* --- Tile picker: anchored option list ---
+     One shared panel, moved to the tapped tile and sized to its options,
+     rather than a native <select> claiming the full screen. Fixed position so
+     it is never clipped by a scrolling ancestor. */
+  /* display:none is the shared base rule above, always in force; this block
+     only adds the layout once .open switches it to flex. */
+  .tile-picker {
+    position: fixed;
+    z-index: 320;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 6px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .tile-picker.open {
+    display: flex;
+  }
+
+  .tile-picker-option {
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-size: 15px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .tile-picker-option:active {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .tile-picker-option.selected {
+    color: var(--accent-cyan);
+    font-weight: 700;
+    background: rgba(137, 215, 183, 0.12);
+  }
+
+  /* --- Mixer cell ---
+     One row of the right-hand panel, for Tanpura, Tabla and Metronome: heading
+     full width on top, then the play button and that instrument's own volume
+     slider side by side beneath it - the real .mix-head and the real
+     slider-container, moved in from the sheet below rather than copied.
+     .mix-head is dissolved with display:contents so its button and heading
+     become independent grid items instead of a fixed pair, which is what lets
+     the button sit next to the slider on row 2 rather than next to the
+     heading on row 1. The slider keeps its percentage but drops its name -
+     the cell's heading already says which instrument it is. The sheet itself
+     keeps only what does not fit here (Tanpura's First String and Speed). */
+  .mixer-cell {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-content: center;
+    align-items: center;
+    gap: 3px 7px;
+    min-width: 0;
+    padding: clamp(4px, 0.9vh, 8px) 8px;
+  }
+
+  .mixer-cell .mix-head {
+    display: contents;
+  }
+
+  .mixer-cell .mix-head h4 {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    font-size: 12.5px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* A clear cyan ring instead of the barely-there default .btn background -
+     that read as blank at this size against the panel.
+     Two inherited rules have to be cancelled explicitly, both from the ≤600px
+     .btn block, which sits later in this file than .btn-round and therefore
+     beats it at equal specificity:
+       padding    - .btn-round zeroes it, but the later rule puts back
+                    11px 14px. Under the global box-sizing:border-box that
+                    leaves a 28px-wide button exactly 0px of content width, so
+                    the triangle was being crushed to nothing. This is why the
+                    icons were invisible.
+       min-height - a 44px thumb-target floor, which stretched the circle into
+                    an ellipse (border-radius:50% on a non-square box). */
+  .mixer-cell .mix-play-btn {
+    grid-column: 1;
+    grid-row: 2;
+    width: 27px;
+    height: 27px;
+    padding: 0;
+    min-height: 0;
+    flex-shrink: 0;
+    border: 1.5px solid var(--accent-cyan);
+    background: rgba(137, 215, 183, 0.16);
+    /* The glyph picks this up through fill="currentColor", so it reads as one
+       piece with the ring around it. */
+    color: var(--accent-cyan);
+  }
+
+  .mixer-cell .mix-play-btn:active {
+    background: rgba(137, 215, 183, 0.3);
+  }
+
+  .mixer-cell .mix-play-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Track and its percentage on one line, the value pinned to the right. */
+  .mixer-cell .slider-container {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  /* Reduced to just the percentage - the name is already the cell's heading,
+     so "Volume"/"Tabla Volume" beside it would only repeat it. */
+  .mixer-cell .slider-header {
+    order: 2;
+    flex-shrink: 0;
+  }
+
+  .mixer-cell .slider-header .control-label {
+    display: none;
+  }
+
+  /* Fixed width so the track does not shift as the number goes 70% -> 100%. */
+  .mixer-cell .slider-val {
+    font-size: 10px;
+    min-width: 26px;
+    text-align: right;
+  }
+
+  /* A visibly smaller slider than the rest of the app's, and kept to the space
+     left beside the percentage so it can never run past the column. */
+  .mixer-cell input[type="range"] {
+    order: 1;
+    flex: 1 1 40px;
+    width: auto;
+    min-width: 0;
+    height: 4px;
+  }
+
+  .mixer-cell input[type="range"]::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+  }
+
+  .mixer-cell input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* tabla-source-note - only ever text when a fetch failed. It shares the
+     slider's flex row, so it takes a full line of its own below the track
+     rather than squeezing in beside it. Empty the rest of the time, and an
+     empty flex item adds no height. */
+  .mixer-cell p {
+    order: 3;
+    flex: 1 0 100%;
+    font-size: 9px;
+    margin: 0 !important;
+  }
+
+  /* Tapping the heading is what opens sheet-tanpura; the chevron is the same
+     affordance the launcher tiles and the scale orb already use. */
+  #tanpura-heading {
+    cursor: pointer;
+  }
+
+  .tanpura-settings-chevron {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  /* --- Mixer bottom sheets --- */
+  /* The panel and the grid around it stop drawing boxes, leaving the three
+     sections free to be positioned individually. */
+  #player-screen .dashboard-grid,
+  #player-screen .mix-panel {
+    display: contents;
+  }
+
+  #player-screen .mix-panel > hr {
+    display: none;
+  }
+
+  .mix-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 260;
+    gap: 16px;
+    padding: 10px 18px calc(22px + var(--safe-bottom));
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--panel-border);
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.35);
+    transform: translateY(101%);
+    visibility: hidden;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.28s ease;
+  }
+
+  .mix-sheet.open {
+    transform: translateY(0);
+    visibility: visible;
+  }
+
+  .sheet-handle {
+    display: block;
+    width: 44px;
+    height: 4px;
+    margin: 0 auto 4px;
+    border-radius: 2px;
+    background: var(--text-muted);
+    opacity: 0.5;
+  }
+
+  /* --- Transport --- */
+  /* transport-row and transport-main only exist to group things for the desktop
+     layout; dissolving them lets the play button and the tempo row become
+     siblings in one grid. */
+  #player-screen .transport-row,
+  #player-screen .transport-main {
+    display: contents;
+  }
+
+  #player-screen .transport-status,
+  #player-screen .transport-panel > hr {
+    display: none;
+  }
+
+  /* Tightened from the original clamps: the mixer cells above need the room
+     more than this card does, and its own content is naturally more compact
+     than a full-height panel needs. */
+  #player-screen .transport-panel {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: clamp(7px, 1.4vh, 12px) 10px;
+    flex-shrink: 0;
+    padding: clamp(10px, 1.8vh, 16px) 12px;
+  }
+
+  /* Overrides the inline style that sizes it for the desktop card. */
+  #player-screen .transport-panel .slider-header .control-label {
+    font-size: 14px !important;
+  }
+
+  /* Every item is placed explicitly. Auto-placement would not do: it walks the
+     items in order and never moves its cursor backwards, so the play button
+     taking row 1 column 1 would push the full-width tempo readout down to a row
+     of its own and leave the slider stranded on a third. */
+  #player-screen .transport-panel > .slider-header {
+    grid-area: 1 / 1 / 2 / -1;
+  }
+
+  /* Not a child combinator: .transport-main above is display:contents, which
+     promotes the button to a grid item without changing who its parent is. */
+  #player-screen .main-play-btn {
+    grid-area: 2 / 1 / 3 / 2;
+    width: clamp(46px, 13.5vw, 56px);
+    height: clamp(46px, 13.5vw, 56px);
+    margin: 0;
+  }
+
+  #player-screen .main-play-btn svg {
+    width: clamp(19px, 5.6vw, 23px);
+    height: clamp(19px, 5.6vw, 23px);
+  }
+
+  /* Lehra's own level, directly under the tempo row it's paired with - sized
+     down like the mixer cells' sliders, in keeping with the rest of this card. */
+  #player-screen .transport-panel > .lehra-volume-slot {
+    display: block;
+    grid-area: 3 / 1 / 4 / -1;
+  }
+
+  #player-screen .lehra-volume-slot .slider-container {
+    gap: 2px;
+  }
+
+  #player-screen .lehra-volume-slot .slider-val {
+    font-size: 13px;
+  }
+
+  #player-screen .lehra-volume-slot input[type="range"] {
+    height: 4px;
+  }
+
+  #player-screen .lehra-volume-slot input[type="range"]::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+  }
+
+  #player-screen .lehra-volume-slot input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+  }
+
+  #player-screen .transport-panel > .laya-timer-row {
+    grid-area: 4 / 1 / 5 / -1;
+  }
+
+  #player-screen .transport-panel > .tempo-row {
+    grid-area: 2 / 2 / 3 / -1;
+    /* One line, as drawn: the four steppers keep the slider company rather than
+       dropping to a row of their own. */
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+
+  #player-screen .tempo-row input[type="range"] {
+    order: 0;
+    flex: 1 1 40px;
+    min-width: 0;
+  }
+
+  /* Trimmed back from the 26px the pointer:coarse block gives every range
+     input - this one shares its row with the steppers, so a smaller knob
+     leaves more of the track visible while staying easy to grab. */
+  #player-screen .tempo-row input[type="range"]::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  #player-screen .tempo-row input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Visible buttons rather than bare text, so each stepper still reads as
+     tappable even at this width. Four of them share the row with the
+     slider, so they run leaner than a standalone button would. min-height:0
+     cancels the ≤600px rule's 44px thumb-target minimum, which this button
+     inherits via its .btn class and which was overriding the 32px set here. */
+  #player-screen .tempo-row .bpm-step {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 28px;
+    height: 37px;
+    min-height: 0;
+    padding: 0 4px;
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 14px;
+    color: var(--accent-cyan);
+  }
+
+  #player-screen .tempo-row .bpm-step:active {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  #player-screen .tempo-row .bpm-step-sm {
+    font-size: 11px;
+    min-width: 24px;
+    padding: 0 2px;
+  }
+
+  #player-screen .laya-timer-row {
+    gap: 0;
+  }
+
+  /* The bracketed tempo pushes each label past what fits at the ≤600px sizing
+     above - shrunk further so all three still sit on one line. */
+  #player-screen .laya-group .btn {
+    padding: 10px 3px;
+    font-size: 11px;
+    min-height: 0;
+  }
+
+  /* --- Screensaver --- */
+  /* The beat tracker, full screen, after 30s of uninterrupted playing.
+     Same element as the desktop tracker, moved in here - so the matra number,
+     the bol and the vibhaag markers all keep working untouched. */
+  .screensaver {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg-primary);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+
+  .screensaver.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .screensaver .visual-tracker-container {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .screensaver .beat-number {
+    font-size: clamp(56px, min(22vw, 24vh), 130px);
+  }
+
+  .screensaver .beat-name {
+    font-size: clamp(18px, min(6vw, 6vh), 32px);
+  }
+}
+
+/* The tracker is hidden rather than removed while the screensaver is idle, so
+   its animation frame costs nothing until it is on screen. */
+.screensaver:not(.active) {
+  pointer-events: none;
+}
+
+
+/* ============================================================================
+   PARCHMENT: THE PHONE DESIGN SYSTEM
+
+   A second skin for the phone layout only. The structure built in the block
+   above - the scale dial, the two control panels, the transport card - is kept
+   exactly as it is; this restates its surfaces, colour and type.
+
+   The ground is warm paper rather than a panel floating on a gradient, so the
+   cards are the only boxes on the screen and the space between them does the
+   separating. Terracotta is the single accent and marks anything active or
+   adjustable; dark olive appears twice, on the sounding note and on the lehra's
+   own level, and nowhere else. Ornament is limited to three marks: the lotus in
+   the header, the mandala ring around the dial, and the floral rule along the
+   bottom edge.
+
+   Deliberately last in the file: nearly every rule here restates one from the
+   block above at equal specificity, and wins on source order alone.
+   ========================================================================== */
+@media (max-width: 900px) {
+
+  /* --- Palette: day ---
+     Warm paper, terracotta accent, dark olive on the two musical readouts. */
+  body {
+    /* Native widgets - the option list, scrollbars, focus rings - are painted
+       by the OS from this, not from the variables below. */
+    color-scheme: light;
+
+    --paper: #F9F5EE;
+    --card: #FCFAF6;
+    --line: #E7DCCF;
+    --rule: #E6DDD1;
+    /* Face of an unselected laya button - a shade down from the card it sits
+       on, so the three read as a set of choices rather than as three cards. */
+    --btn-face: #F4EDE1;
+    --terracotta: #B34A2E;
+    --terracotta-deep: #963A21;
+    --terracotta-wash: rgba(179, 74, 46, 0.09);
+    /* The hairline rosette inside the semitone steppers. */
+    --rosette: rgba(179, 74, 46, 0.16);
+    --olive: #344D3B;
+    --track: #E4D8C7;
+    --paper-shadow: 0 2px 18px rgba(70, 45, 20, 0.08);
+    /* Under a filled control. Neutral and close to the surface on purpose - a
+       coloured glow under a terracotta button is the single quickest way to make
+       a warm, quiet interface look like a game, and there were four of them. */
+    --shadow-btn: 0 1px 3px rgba(70, 45, 20, 0.14);
+    --shadow-lift: 0 10px 30px rgba(70, 45, 20, 0.16);
+    --scrim: rgba(47, 35, 27, 0.35);
+    --r-card: 22px;
+
+    /* The app's existing tokens, remapped. Everything already written against
+       them - the drawer, the sheets, the other four screens - follows without
+       needing a rule of its own. */
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #2F231B;
+    --text-secondary: #5D5146;
+    --text-muted: #8B7E73;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(179, 74, 46, 0.16);
+    --accent-purple: #C0603C;
+    --accent-purple-glow: rgba(179, 74, 46, 0.14);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(52, 77, 59, 0.18);
+    --accent-red: #A8321C;
+
+    --select-bg: #FCFAF6;
+    --select-text: #2F231B;
+    --select-active: #F2E8DA;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
+  /* --- Palette: night ---
+     The same design in ink. Only the tokens change - every rule below this is
+     written against them and is shared by both themes, which is the point of
+     paying for the variables in the first place.
+
+     Two colours could not simply be darkened. Terracotta is lifted to #D2603B,
+     because the day accent goes muddy against a near-black ground; and olive
+     inverts to a pale sage, since a dark green on dark paper is not a colour at
+     all. The pair keeps its meaning either way: terracotta marks what is
+     adjustable, the green marks the two musical readouts.
+
+     body.dark-mode is the app's theme switch (see initSettings), and naming the
+     class here is also what lets this outrank the theme block near the top of
+     the file, which paints .dark-mode cream for the desktop layout. */
+  body.dark-mode {
+    color-scheme: dark;
+
+    --paper: #15120F;
+    --card: #1E1915;
+    --line: #332B24;
+    --rule: #383028;
+    --btn-face: #262019;
+    --terracotta: #D2603B;
+    --terracotta-deep: #B34A2E;
+    --terracotta-wash: rgba(210, 96, 59, 0.16);
+    --rosette: rgba(210, 96, 59, 0.24);
+    --olive: #9CC7A4;
+    --track: #3A322A;
+    --paper-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+    --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 12px 34px rgba(0, 0, 0, 0.6);
+    --scrim: rgba(0, 0, 0, 0.6);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #F2E8DA;
+    --text-secondary: #BCAB96;
+    --text-muted: #8B7C6B;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(210, 96, 59, 0.22);
+    --accent-purple: #E07A55;
+    --accent-purple-glow: rgba(210, 96, 59, 0.18);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(156, 199, 164, 0.22);
+    --accent-red: #E2593C;
+
+    --select-bg: #1E1915;
+    --select-text: #F2E8DA;
+    --select-active: #33291F;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
+  /* --- Typography ---
+     Nothing here any more. The phone block used to restate the whole type
+     system because the desktop layout was set in a different family; both now
+     share the one pair declared at the top of this file, and the display face
+     is assigned there in a single list rather than a rule at a time down here.
+     The two special stacks - Devanagari for the bols, and the musical symbols
+     on the fine-tune buttons - are set on their own classes either way. */
+
+  /* --- Paper ---
+     Flat warm ground plus a fractal-noise tile at 3%, which is enough to stop
+     the large empty areas reading as a flat fill and not enough to see as
+     texture. Longhands, so they land on top of the shorthand up the file. */
+  body {
+    background-color: var(--paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* The shell stops being a surface of its own - the paper below is the surface,
+     and the cards are the only boxes on the screen. */
+  .app-container {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* --- Header: hamburger and lotus ---
+     Three columns rather than space-between, so the lotus is centred on the
+     screen and not on whatever is left between its neighbours.
+
+     The 4px below is what lifts the whole player two pixels: it is the last
+     fixed gap above the dial, and trimming it moves everything under the header
+     up together rather than restacking anything. Taking it off the top instead
+     would have done nothing on a notched phone, where env(safe-area-inset-top)
+     wins the max() and the 8px is never the operative number. */
+  .mobile-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    background: transparent;
+    border-bottom: 0;
+    padding: max(8px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
+             4px max(16px, env(safe-area-inset-left, 0px));
+  }
+
+  .mobile-menu-btn {
+    justify-self: start;
+    width: 40px;
+    height: 40px;
+    color: var(--terracotta);
+  }
+
+  .mobile-menu-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .lotus-mark {
+    display: block;
+    justify-self: center;
+    width: 34px;
+    color: var(--terracotta);
+  }
+
+  .lotus-mark svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* --- Generic controls --- */
+
+  /* Cream and a hairline, not a white film over a dark panel. */
+  .btn {
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--text-primary);
+    border-radius: 14px;
+    font-weight: 500;
+    box-shadow: none;
+  }
+
+  .btn:hover {
+    background: var(--card);
+    border-color: var(--line);
+  }
+
+  .btn:active {
+    background: var(--terracotta-wash);
+    border-color: var(--terracotta);
+  }
+
+  .btn-primary,
+  .btn-primary:hover {
+    background: var(--terracotta);
+    border: 1px solid var(--terracotta);
+    color: #FCFAF6;
+    box-shadow: var(--shadow-btn);
+    transform: none;
+  }
+
+  select,
+  input[type="number"] {
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--text-primary);
+    border-radius: 14px;
+  }
+
+  select:focus,
+  input[type="number"]:focus {
+    border-color: var(--terracotta);
+    box-shadow: 0 0 0 3px var(--terracotta-wash);
+  }
+
+  /* Sliders. A range input cannot colour only the travelled part of its track
+     from CSS alone, so the track is drawn as a two-stop gradient and --fill,
+     kept up to date by refreshRangeFill in app.js, moves the stop. The 0%
+     fallback is what an unpainted slider shows for the one frame before the
+     first refresh.
+
+     background-clip has to be restated right after it, and this is not
+     optional: the pointer:coarse block up the file widens the grab band with
+     13px of vertical padding and relies on background-clip:content-box to keep
+     the painted track thin. `background` is a shorthand, so setting it here
+     silently reset that clip to border-box - which flooded the whole 32px grab
+     band with terracotta and left a fat filled bar with the thumb lost inside
+     it. That is what turned these into loading bars. */
+  input[type="range"] {
+    height: 6px;
+    border-radius: 3px;
+    background-image: linear-gradient(to right,
+                                      var(--terracotta) 0 var(--fill, 0%),
+                                      var(--track) var(--fill, 0%) 100%);
+    background-color: transparent;
+    background-clip: content-box;
+  }
+
+  /* Ringed in the page colour rather than sitting flush on the fill: the thumb
+     and the travelled part of the track are the same terracotta, so without a
+     gap between them the knob disappears into the bar exactly where it matters. */
+  input[type="range"]::-webkit-slider-thumb {
+    width: 19px;
+    height: 19px;
+    background: var(--terracotta);
+    border: 2.5px solid var(--card);
+    box-shadow: var(--shadow-btn);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 19px;
+    height: 19px;
+    background: var(--terracotta);
+    border: 2.5px solid var(--card);
+    box-shadow: var(--shadow-btn);
+  }
+
+  /* Settings screen toggle - the white-on-dark original disappears on cream. */
+  .slider-switch {
+    background-color: var(--track);
+    border-color: var(--line);
+  }
+
+  input:checked + .slider-switch {
+    background-color: var(--terracotta);
+    border-color: var(--terracotta);
+  }
+
+  /* --- The dial ---
+     The one focal point on the screen, and the only element allowed to be
+     large. Sized against the short axis as well as the width so a small handset
+     shrinks it rather than pushing the transport off the bottom. */
+  .scale-hero-wrap {
+    gap: clamp(10px, 2.2vh, 18px);
+    padding-top: clamp(2px, 1vh, 10px);
+  }
+
+  /* Generous, and deliberately so. The three circles are the one place on the
+     screen where the space between things is doing the composing, and each one
+     also wears a corona that stands ~14% of its own width outside its edge - so
+     a tight gap would have the ornaments touching rather than the buttons. */
+  .scale-hero {
+    gap: clamp(18px, 7vw, 34px);
+  }
+
+  /* 13vh is the term that usually wins, and it is the one that matters: the
+     dial is the only elastic thing above the selections card, so tying it to
+     the short axis is what stops a 640px-tall handset from being all dial and
+     no controls. 28vw caps it on wide-but-short screens, and the 116px ceiling
+     keeps it from ballooning on a tablet-sized phone.
+
+     Down twice now, and this is the size it should have been: a note name is
+     read at a glance, not studied, and every pixel taken off it goes to the
+     three instrument rows below, which are read while both hands are busy. */
+  .scale-orb {
+    position: relative;
+    width: clamp(76px, min(28vw, 13vh), 116px);
+    gap: 1px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    box-shadow: var(--paper-shadow);
+  }
+
+  /* The ornament occupies the collar just outside its circle: at 118% the SVG's
+     r=86 ring lands a hair beyond the element's own edge and the petals stand
+     free outside it. Shared by all three circles - same drawing, same
+     proportions, only the petal count differs (see the markup) - which is what
+     makes them read as one instrument rather than one dial and two buttons.
+
+     0.2 keeps it a watermark. It is meant to be noticed on the second look. */
+  .mandala-ring {
+    display: block;
+    position: absolute;
+    left: -9%;
+    top: -9%;
+    width: 118%;
+    height: 118%;
+    color: var(--terracotta);
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
+  /* Solid olive, not the clipped gradient the desktop dial uses - a gradient
+     fill on the one piece of type that has to be legible at a glance across a
+     room is exactly the wrong place for it. */
+  .scale-note {
+    font-size: clamp(25px, min(8.6vw, 4.4vh), 38px);
+    /* Garamond's 700 is where this face gets its weight without getting wide,
+       which matters on a dial that has shrunk twice. */
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--olive);
+  }
+
+  .scale-freq {
+    font-size: clamp(9px, min(2.7vw, 1.4vh), 12px);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--text-secondary);
+  }
+
+  .scale-cents {
+    font-size: clamp(8.5px, min(2.4vw, 1.3vh), 11px);
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* Semitone steppers, as outlined discs wearing the same corona as the dial.
+     Larger than before and now a good two-thirds of the dial's diameter: they
+     are the two controls on this screen most likely to be reached for mid-phrase
+     without looking, and they were sized as if they were decoration. */
+  .scale-step {
+    position: relative;
+    width: clamp(46px, min(14vw, 7.4vh), 62px);
+    height: clamp(46px, min(14vw, 7.4vh), 62px);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--card);
+    color: var(--terracotta);
+    box-shadow: var(--paper-shadow);
+  }
+
+  /* The arrow glyph only. It ships with its own ring in the markup, which would
+     make three concentric circles with the button's border and its corona, so
+     just the triangle is kept - and kept small, floating in the disc rather
+     than filling it. Named rather than matched on `svg`, because the corona is
+     an svg child of the same button and must not be caught by either rule. */
+  .scale-step-arrow circle {
+    display: none;
+  }
+
+  .scale-step-arrow {
+    position: relative;
+    width: 52%;
+    height: 52%;
+    filter: none;
+  }
+
+  .scale-step:active {
+    background: var(--terracotta-wash);
+    transform: none;
+  }
+
+  /* Fine tune. Filled terracotta discs at either end of a plain track: these
+     two are the only always-on actions in the upper half of the screen, so they
+     carry the accent rather than an outline. The flat and sharp signs are kept
+     over a minus and a plus - the control bends pitch, and that is how a
+     musician reads the direction. */
+  /* Full width again, and the track at the app's normal weight. Narrowing the
+     row turned out to be the wrong lever: the range is 100 cents end to end, so
+     every pixel taken off it is resolution taken off the only control here that
+     has any. It is the discs that were oversized, and those stay trimmed - which
+     leaves the track more room than it had to begin with. */
+  .scale-hero-wrap .fine-tune-row {
+    width: 100%;
+    gap: 16px;
+    padding: 0;
+  }
+
+  .fine-tune-step {
+    width: clamp(28px, 3.8vh, 33px);
+    height: clamp(28px, 3.8vh, 33px);
+    border: 0;
+    background: var(--terracotta);
+    color: #FCFAF6;
+    font-size: 15px;
+    box-shadow: var(--shadow-btn);
+  }
+
+  .fine-tune-step:active {
+    background: var(--terracotta-deep);
+  }
+
+  /* --- Selections and levels ---
+     One card, ruled down the middle, rather than the two separate panels the
+     structural layout builds. The card draws the border and the shadow; the two
+     sections inside it become transparent columns either side of a single rule. */
+  .control-sections {
+    gap: 0;
+    padding: 4px 2px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+    box-shadow: var(--paper-shadow);
+    /* The card is the rounded box now, so it is the card that clips - the two
+       columns inside it draw nothing of their own to round off. */
+    overflow: hidden;
+    /* This card is the only flexible thing in the player column, so it already
+       absorbs everything the dial and the transport give up - and both have now
+       given up a good deal, which is where most of its new height comes from.
+       Its rows also breathe more (see .tile and .mixer-cell below).
+
+       This number is only the floor. It is raised from 156px because that was
+       low enough to let the card collapse under six rows on a phone with a lot
+       of browser chrome, but kept well under what the flex actually hands it, so
+       it never becomes a second, competing height on a 700px-tall screen. */
+    min-height: 200px;
+  }
+
+  .control-section {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+
+  #picker-section {
+    border-right: 1px solid var(--rule);
+  }
+
+  /* Dotted between the named selections on the left, where the rows are three
+     variations on the same kind of thing and want tying together; nothing at all
+     between the levels on the right, where each slider already reads as its own
+     block and a rule would only add noise. */
+  #picker-section > * + * {
+    border-top: 1px dashed var(--rule);
+  }
+
+  #mixer-section > * + * {
+    border-top: 0;
+  }
+
+  /* Left column: name, current value, chevron. No icons - the words are shorter
+     to read than any glyph would be to decode. */
+  .tile {
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+    gap: 3px;
+    padding: clamp(6px, 1.2vh, 14px) 24px clamp(6px, 1.2vh, 14px) 14px;
+  }
+
+  .tile .control-label {
+    font-size: clamp(17px, 5vw, 22px);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .tile-value {
+    font-size: clamp(11px, 3.3vw, 13.5px);
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  /* Drawn rather than an icon: two borders of a square, turned 45 degrees. */
+  .tile::after {
+    content: "";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-top: 1.5px solid var(--text-muted);
+    border-right: 1.5px solid var(--text-muted);
+    transform: translateY(-50%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  .tile:active {
+    background: var(--terracotta-wash);
+    border-radius: 12px;
+  }
+
+  /* Right column: instrument, its level, its own transport. The name across the
+     top, then a two-column block - the play button leading, and the label,
+     percentage and track stacked beside it. Grid rather than the flex row the
+     structural layout uses, so the small-caps label can sit under the heading
+     and above the track.
+
+     .slider-container is dissolved with display:contents so its header and its
+     track become grid items of the cell itself. That is what lets the play
+     button, which is a sibling of the container rather than a child of it, be
+     placed against both of them at once.
+
+     The button spans the label row and the track row rather than sitting on the
+     track's row alone. Both readings put it to the left of the slider; this one
+     also leaves the label and the track sharing a single left edge, instead of
+     the label hanging out past a track that starts 30px further in. */
+  /* The padding is deliberately modest and is not where the card's height comes
+     from. On a phone tall enough for one screen the three rows are flex items
+     with a basis of 0, so they divide the card evenly and stretch; align-content
+     then centres each row's contents in whatever height it was handed. Padding
+     only bites on the short-handset breakpoint, where the rows are content-sized
+     - and a generous clamp there is what would overflow the card and be clipped. */
+  .mixer-cell {
+    grid-template-columns: auto 1fr;
+    align-content: center;
+    gap: 4px 10px;
+    padding: clamp(6px, 1.2vh, 12px) 14px;
+  }
+
+  .mixer-cell .mix-head h4 {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    font-size: clamp(16px, 4.6vw, 21px);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* Kept, though the reference layout has no button here: it is the only way to
+     drone the tanpura, or run the theka, without starting the lehra. An
+     outlined disc leading its own level block, so it reads as that instrument's
+     transport and as secondary to the main play button below. */
+  .mixer-cell .mix-play-btn {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+    align-self: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--terracotta);
+    box-shadow: none;
+  }
+
+  .mixer-cell .mix-play-btn:active {
+    background: var(--terracotta-wash);
+    border-color: var(--terracotta);
+  }
+
+  .mixer-cell .mix-play-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .mixer-cell .slider-container {
+    display: contents;
+  }
+
+  /* Rows stated explicitly. The structural block above gives these three the
+     order property, to sort them as a flex row; order also drives grid
+     auto-placement, and it would put the track above its own label here. */
+  .mixer-cell .slider-header {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    /* The label elides against this rather than touching its own percentage. */
+    gap: 6px;
+  }
+
+  /* Restored - the heading above names the instrument, this names the quantity,
+     and at small-caps weight the two read as one label in two registers rather
+     than as a repetition. All three now read just "Volume": "Tabla Volume"
+     under a heading that already says Tabla Theka was saying it twice, and it
+     was the longest label in the narrowest column for no gain. */
+  .mixer-cell .slider-header .control-label {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+  }
+
+  .mixer-cell .slider-val {
+    flex: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--terracotta);
+    min-width: 0;
+  }
+
+  .mixer-cell input[type="range"] {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+    width: 100%;
+    min-width: 0;
+    height: 5px;
+  }
+
+  .mixer-cell input[type="range"]::-webkit-slider-thumb {
+    width: 15px;
+    height: 15px;
+  }
+
+  .mixer-cell input[type="range"]::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Only ever text when a fetch failed, and empty the rest of the time. */
+  .mixer-cell p {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .tanpura-settings-chevron {
+    width: 12px;
+    height: 12px;
+    color: var(--text-muted);
+  }
+
+  /* --- Tempo ---
+     Sized between the two passes it has been through. The first cut was too
+     deep: this card holds the play button, the tempo, and the lehra's own level,
+     which is everything a player touches once the riyaaz is running, and it had
+     been squeezed to the point of reading as a footer under the selections card
+     rather than as the transport. It sits a little under its original height
+     now, and the room still went upstairs. */
+  #player-screen .transport-panel {
+    gap: clamp(7px, 1.35vh, 12px) 10px;
+    padding: clamp(10px, 1.6vh, 16px) 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+    box-shadow: var(--paper-shadow);
+  }
+
+  #player-screen .transport-panel .slider-header .control-label {
+    font-size: 11.5px !important;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+  }
+
+  #bpm-val {
+    font-size: 18.5px !important;
+    font-weight: 700;
+    color: var(--terracotta);
+  }
+
+  /* Nudged back up. The card around it got smaller, which is the point, but this
+     is the one control on the screen that should never be hunted for. */
+  #player-screen .main-play-btn {
+    width: clamp(46px, 13vw, 55px);
+    height: clamp(46px, 13vw, 55px);
+    background: var(--terracotta);
+    border: 0;
+    color: #FCFAF6;
+    box-shadow: var(--shadow-btn);
+  }
+
+  #player-screen .main-play-btn svg {
+    width: clamp(18px, 5.4vw, 22px);
+    height: clamp(18px, 5.4vw, 22px);
+  }
+
+  #player-screen .main-play-btn:active {
+    background: var(--terracotta-deep);
+    transform: scale(0.96);
+  }
+
+  /* Halve and double are gone (see .bpm-step-sm below), which leaves four
+     steppers and a slider on one line - and enough width back that the track,
+     the thing that must not disappear on a 360px handset, is no longer the item
+     everything else is squeezing. */
+  #player-screen .transport-panel > .tempo-row {
+    gap: 4px;
+  }
+
+  #player-screen .tempo-row input[type="range"] {
+    flex: 1 1 60px;
+    min-width: 44px;
+  }
+
+  #player-screen .tempo-row input[type="range"]::-webkit-slider-thumb {
+    width: 17px;
+    height: 17px;
+  }
+
+  #player-screen .tempo-row input[type="range"]::-moz-range-thumb {
+    width: 17px;
+    height: 17px;
+  }
+
+  #player-screen .tempo-row .bpm-step {
+    min-width: 31px;
+    height: 34px;
+    padding: 0 3px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  /* Halve and double. Dropped on the phone: they are the two coarsest moves in
+     the row and the two least reached for, and at this width the four buttons
+     they shared the line with were all being pinched to keep them. -5 and +5
+     cover the same ground in a handful of taps, and the laya presets below cover
+     the big jumps outright. They stay on desktop, where the row is not tight. */
+  #player-screen .tempo-row .bpm-step-sm#bpm-half,
+  #player-screen .tempo-row .bpm-step-sm#bpm-double {
+    display: none;
+  }
+
+  #player-screen .tempo-row .bpm-step-sm {
+    min-width: 28px;
+    font-size: 11px;
+    padding: 0 2px;
+  }
+
+  #player-screen .tempo-row .bpm-step:active {
+    background: var(--terracotta-wash);
+    border-color: var(--terracotta);
+    color: var(--terracotta);
+  }
+
+  /* Olive, not terracotta: the lehra is the thing being practised against, so
+     its level is marked as a different kind of quantity from the accompaniment
+     levels above. The only other olive on the screen is the sounding note. */
+  #player-screen .lehra-volume-slot .control-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--olive);
+  }
+
+  #player-screen .lehra-volume-slot .slider-val {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--terracotta);
+  }
+
+  #player-screen .lehra-volume-slot input[type="range"] {
+    height: 6px;
+  }
+
+  #player-screen .lehra-volume-slot input[type="range"]::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+  }
+
+  #player-screen .lehra-volume-slot input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* --- Laya presets ---
+     Moved out of the tempo card by app.js so they read as three equal choices
+     about it. The one matching the current tempo is filled; the other two stay
+     cream. */
+  .laya-slot {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  #player-screen .laya-timer-row {
+    gap: 0;
+  }
+
+  .laya-group {
+    width: 100%;
+    gap: 10px;
+  }
+
+  #player-screen .laya-group .btn {
+    flex: 1;
+    min-width: 0;
+    min-height: 46px;
+    padding: 12px 4px;
+    border-radius: 14px;
+    background: var(--btn-face);
+    border: 1px solid var(--line);
+    color: var(--text-primary);
+    font-size: clamp(13px, 3.8vw, 16px);
+    font-weight: 600;
+  }
+
+  #player-screen .laya-group .btn.active {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+    color: #FCFAF6;
+    box-shadow: none;
+  }
+
+  /* --- Bottom rule ---
+     A single repeated floral unit along the very bottom of the player, the last
+     of the three ornaments. Fixed rather than in flow, and beneath every overlay
+     (drawer 300, sheets 260, scrim 250) so an open sheet covers it. Only on the
+     player, which is the one screen that does not scroll. */
+  #player-screen.active {
+    padding-bottom: 22px;
+  }
+
+  body.player-active::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(2px + var(--safe-bottom));
+    z-index: 1;
+    height: 18px;
+    /* Pulled well back. Three ornaments now share this screen - the lotus, three
+       coronas, and this - and a repeating floral band at full strength is the one
+       of them that tips warm into festive. At a third it registers as the edge of
+       the page rather than as decoration on it. */
+    opacity: 0.34;
+    pointer-events: none;
+    /* A three-petal palmette on a hairline rule, with a dot either side of it.
+       The first attempt was a four-petal rosette, which at this size resolved
+       into a row of plus signs rather than anything floral - the petals have to
+       fan upward from a common base to read as a flower. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='14' viewBox='0 0 34 14'%3E%3Cg fill='%23B34A2E'%3E%3Cpath d='M17 1.6c1.7 2.8 1.7 6.6 0 9.4-1.7-2.8-1.7-6.6 0-9.4z'/%3E%3Cpath d='M16.5 11c-2.6-1.3-4.5-3.7-5.1-6.6 2.7.7 4.7 2.6 5.1 6.6z'/%3E%3Cpath d='M17.5 11c2.6-1.3 4.5-3.7 5.1-6.6-2.7.7-4.7 2.6-5.1 6.6z'/%3E%3Ccircle cx='4' cy='8.6' r='1.25'/%3E%3Ccircle cx='30' cy='8.6' r='1.25'/%3E%3C/g%3E%3Cpath d='M0 12.6h34' stroke='%23B34A2E' stroke-width='0.7' opacity='0.55'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-position: center;
+  }
+
+  /* --- Overlays --- */
+  .sidebar {
+    background: var(--card);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .app-scrim {
+    background: var(--scrim);
+  }
+
+  .drawer-close-btn {
+    background: var(--paper);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--terracotta-wash);
+    border-left: 3px solid var(--terracotta);
+    box-shadow: none;
+  }
+
+  .mix-sheet {
+    background: var(--card);
+    border-top: 1px solid var(--line);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .sheet-handle {
+    background: var(--line);
+    opacity: 1;
+  }
+
+  .tile-picker {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .tile-picker-option {
+    color: var(--text-primary);
+  }
+
+  .tile-picker-option.selected {
+    color: var(--terracotta);
+    background: var(--terracotta-wash);
+  }
+
+  .tile-picker-option:active {
+    background: var(--terracotta-wash);
+  }
+
+  /* --- Beat tracker (the screensaver on phones) --- */
+  .screensaver {
+    background-color: var(--paper);
+  }
+
+  /* Same reasoning as the sounding note: the clipped white-to-accent gradient
+     that reads well on a dark panel is close to invisible on paper.
+
+     Set in the UI face, not the display one - it is the only large numeral in
+     the app that is read at a glance from across a room while both hands are
+     busy, and a grotesque's figures are more distinct at that distance than a
+     Garamond's. It also puts it in the same face as the bol beneath it, which
+     was already sans. The scale dial keeps the serif: that one is read up
+     close, and it is a name rather than a count. */
+  .beat-number {
+    font-weight: 700;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--olive);
+  }
+
+  .beat-name {
+    color: var(--terracotta);
+  }
+
+  .vibhaag-mark {
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--text-secondary);
+  }
+
+  .vibhaag-mark.active {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+    color: #FCFAF6;
+    box-shadow: none;
+  }
+
+  .vibhaag-mark.sam {
+    border-color: var(--olive);
+    color: var(--olive);
+  }
+
+  .vibhaag-mark.sam.active {
+    background: var(--olive);
+    border-color: var(--olive);
+    color: #FCFAF6;
+    box-shadow: none;
+  }
+
+  /* --- The other four screens ---
+     They keep their own scrolling layouts; this only re-grounds the surfaces
+     that were written as dark washes and would otherwise sit grey on paper. */
+  .screen h2 {
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: 0.01em;
+  }
+
+  .glass-panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+    box-shadow: var(--paper-shadow);
+  }
+
+  /* A row inside a glass-panel, so it steps down to the paper rather than
+     repeating the card colour it sits on. */
+  .taal-details-item {
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+
+  .taal-info-header {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--terracotta);
+  }
+
+  .stat-val {
+    font-weight: 600;
+    color: var(--terracotta);
+  }
+
+  /* --- Night adjustments ---
+     Everything above is written against the tokens and needs nothing further.
+     What is left is the handful of places where a colour is not a token: two
+     ornaments drawn into an SVG, the paper grain, and one fill that inverts.
+
+     The floral rule is the same drawing as the day one with the accent swapped
+     for the night terracotta - the data URI has to be repeated because the
+     colour lives inside the encoded markup, where a var() cannot reach. */
+  body.dark-mode.player-active::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='14' viewBox='0 0 34 14'%3E%3Cg fill='%23D2603B'%3E%3Cpath d='M17 1.6c1.7 2.8 1.7 6.6 0 9.4-1.7-2.8-1.7-6.6 0-9.4z'/%3E%3Cpath d='M16.5 11c-2.6-1.3-4.5-3.7-5.1-6.6 2.7.7 4.7 2.6 5.1 6.6z'/%3E%3Cpath d='M17.5 11c2.6-1.3 4.5-3.7 5.1-6.6-2.7.7-4.7 2.6-5.1 6.6z'/%3E%3Ccircle cx='4' cy='8.6' r='1.25'/%3E%3Ccircle cx='30' cy='8.6' r='1.25'/%3E%3C/g%3E%3Cpath d='M0 12.6h34' stroke='%23D2603B' stroke-width='0.7' opacity='0.55'/%3E%3C/svg%3E");
+    opacity: 0.44;
+  }
+
+  /* The mandala is a watermark either way, but a light mark on a dark ground
+     reads stronger than a dark one on paper at the same alpha, so it is pulled
+     back rather than pushed up. */
+  body.dark-mode .mandala-ring {
+    opacity: 0.26;
+  }
+
+  /* The grain overlay is mid-tone noise: on paper it darkens, on ink it lifts,
+     and it needs a little more of itself to register against the darker
+     ground. */
+  body.dark-mode {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  /* Anything filled with terracotta keeps cream on top of it in both themes and
+     needs no rule here - the accent stays a mid-tone either way, so the pairing
+     does not flip.
+
+     Sam is the exception. Its fill is the green, and the green is the one token
+     that does invert - dark olive by day, pale sage by night - so the type on it
+     has to invert with it or it goes cream-on-cream. */
+  body.dark-mode .vibhaag-mark.sam.active {
+    color: #15120F;
+  }
+
+  /* The sounding note, white at night rather than sage.
+     It is the brightest thing on a near-black screen and the one word read from
+     furthest away, and the green that carries meaning by day - marking the note
+     and the lehra's own level as a different kind of quantity from the
+     accompaniment - costs it contrast here for a distinction the dark palette
+     makes some other way. The sage stays on the beat number and the LEHRA
+     VOLUME label, which are read closer. */
+  body.dark-mode .scale-note {
+    color: #FFFFFF;
+  }
+}
+
+/* Short handsets (360x640 and similar).
+
+   The player is built to be exactly one viewport tall, and on taller phones it
+   is. Below about 700px it stops fitting: the selections card stacks a heading,
+   a small-caps label and a track in each of three rows, and measured on a
+   360x640 frame with the touch padding in force it came up short however the
+   dial above it was trimmed.
+
+   So this breakpoint stops defending the one-screen rule and lets the player
+   scroll. Shaving type and padding until it fitted was the alternative, and it
+   traded legibility on the smallest screens - the ones that can least afford
+   it - for a property no one had asked for. A short scroll is the better
+   failure. Everything above this height is unaffected. */
+@media (max-width: 900px) and (max-height: 700px) {
+  body.player-active .main-content {
+    overflow-y: auto;
+  }
+
+  /* Natural height rather than a share of the viewport, for the screen itself
+     and for the card that was absorbing the shortfall. */
+  #player-screen.active {
+    flex: 0 0 auto;
+  }
+
+  .control-sections {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  /* The rows are given a flex-basis of 0 up the file, which is what divides a
+     fixed-height card evenly between them. With the card now sized by its
+     content that basis means "ignore my content", and the taller instrument
+     rows were being clipped by it. An auto basis measures each row first and
+     shares out only what is left over, so nothing is cut.
+
+     The two columns still line up: they are grid items stretched to a common
+     row height, so whichever column is taller sets it and the other column's
+     rows grow into it. */
+  .control-section > * {
+    flex: 1 1 auto;
+  }
+
+  /* The dial has no viewport to fill any more, so it stops chasing one. The
+     steppers hold their size: they are a hand target, not a proportion, and
+     shrinking them is the first thing to regret on the smallest screen. */
+  .scale-orb {
+    width: clamp(76px, min(26vw, 12vh), 100px);
+  }
+
+  /* The floral rule is pinned to the bottom of the viewport, which only works
+     while the player is exactly one screen. Once it scrolls, the rule stops
+     being an edge and becomes an ornament lying across the laya buttons as they
+     pass under it. There is no honest place for it here, so it goes. */
+  body.player-active::after {
+    display: none;
+  }
+
+  /* Scrolling is the safety valve, not the intent - these keep the overflow to
+     roughly half a screen rather than letting it run. */
+  .tile .control-label,
+  .mixer-cell .mix-head h4 {
+    font-size: 16px;
+  }
+
+  .tile,
+  .mixer-cell {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+}
+
+/* Compact sliders on a touch screen.
+
+   The pointer:coarse block near the top of this file widens every track's grab
+   band with 13px of vertical padding, and pairs it with box-sizing:content-box
+   and background-clip:content-box so the visible track keeps its own thickness.
+   Those three go together: padding without the other two collapses the content
+   box to nothing, paints the gradient across the whole padding box and leaves a
+   thick bar with no thumb on it.
+
+   So trimming that padding for the four compact sliders has to happen inside a
+   pointer:coarse query too, not in the general phone block - there it would
+   also hit mouse-driven viewports, which never got the other two properties.
+
+   26px apiece was what pushed the player past one screen on a 640px-tall
+   handset. 8px still leaves a ~21px band, which a fingertip lands on easily. */
+@media (max-width: 900px) and (pointer: coarse) {
+  .mixer-cell input[type="range"],
+  #player-screen .lehra-volume-slot input[type="range"] {
+    padding: 8px 0;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 700px) and (pointer: coarse) {
+  .mixer-cell input[type="range"],
+  #player-screen .lehra-volume-slot input[type="range"] {
+    padding: 6px 0;
+  }
+}

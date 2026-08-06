@@ -1,0 +1,19 @@
+# Local run only. Production is a single container behind whatever the host
+# puts in front of it, so there is nothing here to orchestrate - this exists so
+# that `docker compose up` is the whole local workflow.
+services:
+  lehra:
+    build: .
+    ports:
+      # host:container. The container side must match PORT in the Dockerfile.
+      - "8080:8080"
+    environment:
+      # Overridable, to rehearse what a host that injects its own port will do.
+      PORT: 8080
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

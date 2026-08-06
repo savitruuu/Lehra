@@ -1,0 +1,19 @@
+# The Dockerfile names the files it ships one by one, so nothing here can leak
+# into the image either way. This is about build-context size and speed: every
+# path not excluded is uploaded to the daemon before the build starts.
+.git
+.gitignore
+.vscode
+.dockerignore
+Dockerfile
+compose.yaml
+docker/
+node_modules
+
+# Working notes and local output - not served, not shipped.
+README.md
+DEPLOY.md
+context.md
+server_log.txt
+*.apk
+*.log
