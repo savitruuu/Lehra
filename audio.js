@@ -501,19 +501,6 @@ class LehraAudioEngine {
         });
       }
     }
-
-    if (this.isPlaying && this.ctx) {
-      this.activeOscillators.forEach(node => {
-        try { node.stop(this.ctx.currentTime); } catch(e) {}
-      });
-      this.activeOscillators = [];
-
-      this.nextNoteTime = this.ctx.currentTime;
-      if (this._schedulerRunning) {
-        clearTimeout(this.timerId);
-        this.scheduler();
-      }
-    }
   }
 
   /**

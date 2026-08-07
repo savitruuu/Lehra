@@ -274,7 +274,10 @@ function initPlayerControls() {
     // just left, not to this one.
     AudioEngine.pitchCents = 0;
     const fineSlider = document.getElementById("pitch-fine");
-    if (fineSlider) fineSlider.value = 0;
+    if (fineSlider) {
+      fineSlider.value = 0;
+      refreshRangeFill(fineSlider);
+    }
 
     // A running sampled drone is pitched by playbackRate, so it has to be
     // rebuilt to follow the new scale.
@@ -925,16 +928,35 @@ function applyLayoutRelocations() {
 
 // --- Drawer, scrim and mixer sheets ---
 
-function closeOverlays() {
+function closeOverlays(skipHistory = false) {
   const drawer = document.getElementById("app-drawer");
   const scrim = document.getElementById("app-scrim");
   const openBtn = document.getElementById("drawer-open-btn");
+
+  const drawerWasOpen = drawer && drawer.classList.contains("open");
+  const sheetWasOpen = document.querySelectorAll(".mix-sheet.open").length > 0;
+  const pickerWasOpen = document.getElementById("tile-picker") !== null;
 
   if (drawer) drawer.classList.remove("open");
   if (openBtn) openBtn.setAttribute("aria-expanded", "false");
   document.querySelectorAll(".mix-sheet.open").forEach(s => s.classList.remove("open"));
   if (scrim) scrim.classList.remove("open");
   closeTilePicker();
+
+  // If any overlay was open, and we aren't responding to a back button pop state,
+  // pop the dummy state to keep the history clean.
+  if (!skipHistory && (drawerWasOpen || sheetWasOpen || pickerWasOpen)) {
+    if (window.history.state && window.history.state.overlay) {
+      window.history.back();
+    }
+  }
+}
+
+function pushOverlayHistoryState() {
+  // Push a dummy state so the mobile hardware back button triggers popstate instead of exiting the app.
+  if (!window.history.state || !window.history.state.overlay) {
+    window.history.pushState({ overlay: true }, "");
+  }
 }
 
 function openDrawer() {
@@ -946,6 +968,7 @@ function openDrawer() {
   if (drawer) drawer.classList.add("open");
   if (openBtn) openBtn.setAttribute("aria-expanded", "true");
   if (scrim) scrim.classList.add("open");
+  pushOverlayHistoryState();
 }
 
 function openSheet(sheetId) {
@@ -956,7 +979,20 @@ function openSheet(sheetId) {
   sheet.classList.add("open");
   const scrim = document.getElementById("app-scrim");
   if (scrim) scrim.classList.add("open");
+  pushOverlayHistoryState();
 }
+
+// Popstate listener to handle hardware back button closes
+window.addEventListener("popstate", (e) => {
+  const drawer = document.getElementById("app-drawer");
+  const drawerOpen = drawer && drawer.classList.contains("open");
+  const sheetOpen = document.querySelectorAll(".mix-sheet.open").length > 0;
+  const pickerOpen = document.getElementById("tile-picker") !== null;
+
+  if (drawerOpen || sheetOpen || pickerOpen) {
+    closeOverlays(true);
+  }
+});
 
 // --- Scale dial ---
 
@@ -1080,6 +1116,7 @@ function openTilePicker(select, tile) {
   });
 
   panel.classList.add("open");
+  pushOverlayHistoryState();
 
   // Anchored to the tile and clamped to the viewport, rather than centred or
   // full-screen: it opens "from that place itself" and never claims more room
@@ -1423,7 +1460,14 @@ function initMobileLayout() {
 
   // Any touch or key postpones the screensaver; a touch while it is showing
   // dismisses it. Capture phase so it is seen before anything swallows it.
-  document.addEventListener("pointerdown", noteActivity, true);
+  document.addEventListener("pointerdown", (e) => {
+    const screensaverActive = trackerIsOnScreen();
+    noteActivity();
+    if (screensaverActive) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  }, true);
   document.addEventListener("keydown", noteActivity, true);
 
   // A tap anywhere outside the open picker closes it - including on a
