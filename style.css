@@ -2496,7 +2496,11 @@ input:checked + .slider-switch:before {
     --card-shadow: var(--paper-shadow);
   }
 
-  /* --- Palette: night, Moss & Sage --- */
+  /* --- Palette: night, Moss & Sage ---
+     One accent now, not two: the gold that used to mark only the scale note
+     and the beat number is what every button, active state and highlight
+     reads too. --terracotta keeps its name as the token everything else in
+     this file already points at, but it carries gold rather than mint here. */
   body.palette-moss.dark-mode {
     color-scheme: dark;
 
@@ -2505,10 +2509,10 @@ input:checked + .slider-switch:before {
     --line: #23362F;
     --rule: #26392F;
     --btn-face: #1D2F29;
-    --terracotta: #89D7B7;
-    --terracotta-deep: #5FAE91;
-    --terracotta-wash: rgba(137, 215, 183, 0.14);
-    --rosette: rgba(137, 215, 183, 0.22);
+    --terracotta: #E0B04E;
+    --terracotta-deep: #C0922F;
+    --terracotta-wash: rgba(224, 176, 78, 0.16);
+    --rosette: rgba(224, 176, 78, 0.24);
     --olive: #E0B04E;
     --track: #2C3D36;
     --paper-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
@@ -2527,9 +2531,9 @@ input:checked + .slider-switch:before {
     --text-muted: #6C8078;
 
     --accent-cyan: var(--terracotta);
-    --accent-cyan-glow: rgba(137, 215, 183, 0.22);
-    --accent-purple: #5FAE91;
-    --accent-purple-glow: rgba(137, 215, 183, 0.18);
+    --accent-cyan-glow: rgba(224, 176, 78, 0.22);
+    --accent-purple: #C0922F;
+    --accent-purple-glow: rgba(224, 176, 78, 0.18);
     --accent-gold: var(--olive);
     --accent-gold-glow: rgba(224, 176, 78, 0.22);
     --accent-red: #EF4444;
