@@ -553,7 +553,7 @@ class LehraAudioEngine {
     }
 
     if (window._activeRaagKey === "hemant" && this.bpm >= 190) {
-      const drutNotes = [12, null, 12, null, 12, null, 11, 12, 11, null, null, 9, 4, 5, 9, 11];
+      const drutNotes = [12, null, 12, null, 12, null, 10, 12, 10, null, null, 9, 4, 5, 9, 10];
       return drutNotes[index % drutNotes.length];
     }
 
