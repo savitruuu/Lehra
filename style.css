@@ -10,13 +10,13 @@
    Sans Flex and the phone in Inter and Cormorant, so the same app was three
    faces depending on where you looked at it. Now there are two, everywhere, and
    each has one job. */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap');
 
 :root {
   /* Classical face for names and readouts, grotesque for the interface and its
      numbers. Used at both sizes - see the * rule and the display list below. */
-  --font-display: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
-  --font-ui: 'Inter', 'Manrope', system-ui, sans-serif;
+  --font-display: 'Spectral', 'EB Garamond', Georgia, serif;
+  --font-ui: 'Work Sans', 'Manrope', system-ui, sans-serif;
 
   /* Native widgets (dropdown popups, scrollbars) follow this, not our vars. */
   color-scheme: dark;
@@ -79,6 +79,64 @@ body.dark-mode {
   --accent-purple-glow: rgba(137, 215, 183, 0.3);
   --accent-gold: #c2880f;
   --accent-gold-glow: rgba(194, 136, 15, 0.3);
+  --accent-red: #dc2626;
+
+  --card-shadow: 0 8px 32px rgba(26, 49, 44, 0.12);
+}
+
+/* --- Alternate palette: Moss & Sage ---
+   Same two-theme structure as above, set from the type-specimen artifact's
+   colours instead of the shipped forest-and-cream pair. Picked from Settings
+   (see initSettings/body.palette-moss) and layered on top of the theme
+   toggle, so it inherits dark vs. light from body.dark-mode and only repaints
+   the tokens themselves. Semantic red is left alone in both. */
+body.palette-moss {
+  --select-bg: #182c26;
+  --select-text: #f1ece0;
+  --select-active: #234238;
+
+  --bg-primary: #12201c;
+  --bg-secondary: #182c26;
+  --bg-gradient: linear-gradient(145deg, #12201c 0%, #182c26 50%, #1f3a32 100%);
+  --panel-bg: rgba(137, 215, 183, 0.08);
+  --panel-border: rgba(137, 215, 183, 0.16);
+
+  --text-primary: #f1ece0;
+  --text-secondary: #89d7b7;
+  --text-muted: #5f7a70;
+
+  --accent-cyan: #89d7b7;
+  --accent-cyan-glow: rgba(137, 215, 183, 0.4);
+  --accent-purple: #2f6656;
+  --accent-purple-glow: rgba(47, 102, 86, 0.45);
+  --accent-gold: #e0b04e;
+  --accent-gold-glow: rgba(224, 176, 78, 0.4);
+  --accent-red: #ef4444;
+
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body.palette-moss.dark-mode {
+  --select-bg: #ffffff;
+  --select-text: #1a312c;
+  --select-active: #dcece3;
+
+  --bg-primary: #f6f3ec;
+  --bg-secondary: #efe9dc;
+  --bg-gradient: linear-gradient(145deg, #f6f3ec 0%, #efe9dc 100%);
+  --panel-bg: rgba(255, 255, 255, 0.85);
+  --panel-border: rgba(26, 49, 44, 0.14);
+
+  --text-primary: #1a312c;
+  --text-secondary: #2f6656;
+  --text-muted: #6f8177;
+
+  --accent-cyan: #2f6656;
+  --accent-cyan-glow: rgba(47, 102, 86, 0.28);
+  --accent-purple: #89d7b7;
+  --accent-purple-glow: rgba(137, 215, 183, 0.32);
+  --accent-gold: #a8790f;
+  --accent-gold-glow: rgba(168, 121, 15, 0.28);
   --accent-red: #dc2626;
 
   --card-shadow: 0 8px 32px rgba(26, 49, 44, 0.12);
@@ -822,7 +880,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .screensaver,
 .tile-picker,
 .tanpura-settings-chevron,
-.lotus-mark,
 .mandala-ring {
   display: none;
 }
@@ -2216,9 +2273,8 @@ input:checked + .slider-switch:before {
    cards are the only boxes on the screen and the space between them does the
    separating. Terracotta is the single accent and marks anything active or
    adjustable; dark olive appears twice, on the sounding note and on the lehra's
-   own level, and nowhere else. Ornament is limited to three marks: the lotus in
-   the header, the mandala ring around the dial, and the floral rule along the
-   bottom edge.
+   own level, and nowhere else. Ornament is limited to two marks: the mandala
+   ring around the dial, and the floral rule along the bottom edge.
 
    Deliberately last in the file: nearly every rule here restates one from the
    block above at equal specificity, and wins on source order alone.
@@ -2341,6 +2397,100 @@ input:checked + .slider-switch:before {
     --card-shadow: var(--paper-shadow);
   }
 
+  /* --- Palette: day, Moss & Sage ---
+     The alternate palette from Settings (see initSettings/body.palette-moss),
+     restated for the phone skin: terracotta's job is taken over by moss, and
+     olive's by a warm gold, so the two readouts still read as a pair against
+     the new ground. */
+  body.palette-moss {
+    color-scheme: light;
+
+    --paper: #F5F2EA;
+    --card: #FFFFFF;
+    --line: #DCE4DC;
+    --rule: #DEE6DE;
+    --btn-face: #EDEFE6;
+    --terracotta: #2F6656;
+    --terracotta-deep: #234C40;
+    --terracotta-wash: rgba(47, 102, 86, 0.10);
+    --rosette: rgba(47, 102, 86, 0.18);
+    --olive: #A8790F;
+    --track: #E4E4D8;
+    --paper-shadow: 0 2px 18px rgba(26, 49, 44, 0.08);
+    --shadow-btn: 0 1px 3px rgba(26, 49, 44, 0.12);
+    --shadow-lift: 0 10px 30px rgba(26, 49, 44, 0.14);
+    --scrim: rgba(20, 30, 26, 0.35);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #1A312C;
+    --text-secondary: #4B6158;
+    --text-muted: #8B968E;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(47, 102, 86, 0.16);
+    --accent-purple: #4F8F76;
+    --accent-purple-glow: rgba(47, 102, 86, 0.14);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(168, 121, 15, 0.18);
+    --accent-red: #DC2626;
+
+    --select-bg: #FFFFFF;
+    --select-text: #1A312C;
+    --select-active: #E4ECE4;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
+  /* --- Palette: night, Moss & Sage --- */
+  body.palette-moss.dark-mode {
+    color-scheme: dark;
+
+    --paper: #12201C;
+    --card: #182C26;
+    --line: #23362F;
+    --rule: #26392F;
+    --btn-face: #1D2F29;
+    --terracotta: #89D7B7;
+    --terracotta-deep: #5FAE91;
+    --terracotta-wash: rgba(137, 215, 183, 0.14);
+    --rosette: rgba(137, 215, 183, 0.22);
+    --olive: #E0B04E;
+    --track: #2C3D36;
+    --paper-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+    --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 12px 34px rgba(0, 0, 0, 0.6);
+    --scrim: rgba(0, 0, 0, 0.6);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #F1ECE0;
+    --text-secondary: #9FC2B2;
+    --text-muted: #6C8078;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(137, 215, 183, 0.22);
+    --accent-purple: #5FAE91;
+    --accent-purple-glow: rgba(137, 215, 183, 0.18);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(224, 176, 78, 0.22);
+    --accent-red: #EF4444;
+
+    --select-bg: #182C26;
+    --select-text: #F1ECE0;
+    --select-active: #23362F;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
   /* --- Typography ---
      Nothing here any more. The phone block used to restate the whole type
      system because the desktop layout was set in a different family; both now
@@ -2367,10 +2517,7 @@ input:checked + .slider-switch:before {
     box-shadow: none;
   }
 
-  /* --- Header: hamburger and lotus ---
-     Three columns rather than space-between, so the lotus is centred on the
-     screen and not on whatever is left between its neighbours.
-
+  /* --- Header: hamburger ---
      The 4px below is what lifts the whole player two pixels: it is the last
      fixed gap above the dial, and trimming it moves everything under the header
      up together rather than restacking anything. Taking it off the top instead
@@ -2396,19 +2543,6 @@ input:checked + .slider-switch:before {
   .mobile-menu-btn svg {
     width: 24px;
     height: 24px;
-  }
-
-  .lotus-mark {
-    display: block;
-    justify-self: center;
-    width: 34px;
-    color: var(--terracotta);
-  }
-
-  .lotus-mark svg {
-    display: block;
-    width: 100%;
-    height: auto;
   }
 
   /* --- Generic controls --- */
@@ -3076,9 +3210,9 @@ input:checked + .slider-switch:before {
     bottom: calc(2px + var(--safe-bottom));
     z-index: 1;
     height: 18px;
-    /* Pulled well back. Three ornaments now share this screen - the lotus, three
-       coronas, and this - and a repeating floral band at full strength is the one
-       of them that tips warm into festive. At a third it registers as the edge of
+    /* Pulled well back. Two ornaments now share this screen - three coronas
+       and this - and a repeating floral band at full strength is the one of
+       them that tips warm into festive. At a third it registers as the edge of
        the page rather than as decoration on it. */
     opacity: 0.34;
     pointer-events: none;

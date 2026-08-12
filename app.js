@@ -1528,9 +1528,11 @@ function loadAnalyticsDashboard() {
 function initSettings() {
   const saveBtn = document.getElementById("settings-save-btn");
   const themeToggle = document.getElementById("settings-theme-toggle");
+  const paletteSelect = document.getElementById("settings-palette-select");
 
   // Load current theme state
   themeToggle.checked = document.body.classList.contains("dark-mode");
+  paletteSelect.value = document.body.classList.contains("palette-moss") ? "moss" : "default";
 
   themeToggle.addEventListener("change", (e) => {
     if (e.target.checked) {
@@ -1538,6 +1540,10 @@ function initSettings() {
     } else {
       document.body.classList.remove("dark-mode");
     }
+  });
+
+  paletteSelect.addEventListener("change", (e) => {
+    document.body.classList.toggle("palette-moss", e.target.value === "moss");
   });
 
   saveBtn.addEventListener("click", () => {
@@ -1548,6 +1554,7 @@ function initSettings() {
 
     const config = {
       theme: themeToggle.checked ? "dark" : "light",
+      palette: paletteSelect.value,
       taal: defaultTaal,
       raag: defaultRaag,
       instrument: defaultInstrument,
@@ -1569,6 +1576,11 @@ function loadSettingsDefaults() {
     if (config.theme === "dark") {
       document.body.classList.add("dark-mode");
       document.getElementById("settings-theme-toggle").checked = true;
+    }
+
+    if (config.palette === "moss") {
+      document.body.classList.add("palette-moss");
+      document.getElementById("settings-palette-select").value = "moss";
     }
 
     // Set player defaults

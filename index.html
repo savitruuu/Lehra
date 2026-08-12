@@ -92,19 +92,6 @@
         <span class="brand-name" style="font-size: 18px;">Lehra</span>
       </div>
 
-      <!-- Phone-only maker's mark, in place of the wordmark the drawer already
-           carries. Purely decorative, hence aria-hidden - the accessible name
-           of the app is the <title>, not this. -->
-      <div class="lotus-mark" aria-hidden="true">
-        <svg viewBox="0 0 48 28" fill="currentColor">
-          <path d="M24 1.5c3.1 5.2 3.1 13 0 19.4-3.1-6.4-3.1-14.2 0-19.4z"/>
-          <path d="M23.4 21.6c-4.4-2.6-7.8-7.2-8.9-12.7 4.6 1.2 8.2 4.9 8.9 12.7z"/>
-          <path d="M24.6 21.6c4.4-2.6 7.8-7.2 8.9-12.7-4.6 1.2-8.2 4.9-8.9 12.7z"/>
-          <path d="M23.2 22.8c-5.4-.4-10.5-3.5-13.4-8.3 5.2-.8 10.3 2 13.4 8.3z"/>
-          <path d="M24.8 22.8c5.4-.4 10.5-3.5 13.4-8.3-5.2-.8-10.3 2-13.4 8.3z"/>
-        </svg>
-      </div>
-
     </header>
 
     <!-- Main Content Panels -->
@@ -582,6 +569,14 @@
               <input type="checkbox" id="settings-theme-toggle">
               <span class="slider-switch"></span>
             </label>
+          </div>
+
+          <div class="slider-container">
+            <label class="control-label" for="settings-palette-select">Color Palette</label>
+            <select id="settings-palette-select">
+              <option value="default">Forest &amp; Cream (Default)</option>
+              <option value="moss">Moss &amp; Sage</option>
+            </select>
           </div>
 
           <hr style="border: 0; border-top: 1px solid var(--panel-border);">
