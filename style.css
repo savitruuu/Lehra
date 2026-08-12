@@ -1824,6 +1824,56 @@ input:checked + .slider-switch:before {
     display: none;
   }
 
+  /* --- Settings dropdowns ---
+     Same trick as the launcher tiles above: the real <select> stays as the
+     value store but stays hidden, and this stands in for it - same box the
+     native control used to draw, plus a chevron to keep the "opens a list"
+     affordance, but tapping it opens .tile-picker instead of the platform's
+     own full-screen wheel. What was inconsistent was never the box, it was
+     the two different lists that opened from it. */
+  .settings-tile-select {
+    display: none;
+  }
+
+  .settings-tile {
+    width: 100%;
+    padding: 12px 40px 12px 12px;
+    background: var(--select-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 15px;
+    cursor: pointer;
+    position: relative;
+    transition: var(--transition);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .settings-tile:active {
+    border-color: var(--accent-cyan);
+  }
+
+  .settings-tile:focus-visible {
+    outline: none;
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 10px var(--accent-cyan-glow);
+  }
+
+  .settings-tile::after {
+    content: "";
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--text-secondary);
+    border-bottom: 2px solid var(--text-secondary);
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+  }
+
   /* --- Tile picker: anchored option list ---
      One shared panel, moved to the tapped tile and sized to its options,
      rather than a native <select> claiming the full screen. Fixed position so
@@ -2671,7 +2721,7 @@ input:checked + .slider-switch:before {
      three instrument rows below, which are read while both hands are busy. */
   .scale-orb {
     position: relative;
-    width: clamp(76px, min(28vw, 13vh), 116px);
+    width: clamp(86px, min(31vw, 14.5vh), 130px);
     gap: 1px;
     border: 1px solid var(--line);
     background: var(--card);
@@ -2731,8 +2781,8 @@ input:checked + .slider-switch:before {
      without looking, and they were sized as if they were decoration. */
   .scale-step {
     position: relative;
-    width: clamp(46px, min(14vw, 7.4vh), 62px);
-    height: clamp(46px, min(14vw, 7.4vh), 62px);
+    width: clamp(52px, min(15.5vw, 8.3vh), 70px);
+    height: clamp(52px, min(15.5vw, 8.3vh), 70px);
     border: 1px solid var(--line);
     border-radius: 50%;
     background: var(--card);
@@ -3184,6 +3234,11 @@ input:checked + .slider-switch:before {
     color: var(--text-primary);
     font-size: clamp(13px, 3.8vw, 16px);
     font-weight: 600;
+    /* .btn is flex with an 8px gap between children, which put daylight
+       between the laya name and its bracketed BPM even with no space in the
+       markup - the two text nodes are flex items too. Zeroed here so
+       "Vilambit(60)" reads as one word with a number stuck to it. */
+    gap: 0;
   }
 
   #player-screen .laya-group .btn.active {
@@ -3399,16 +3454,6 @@ input:checked + .slider-switch:before {
     color: #15120F;
   }
 
-  /* The sounding note, white at night rather than sage.
-     It is the brightest thing on a near-black screen and the one word read from
-     furthest away, and the green that carries meaning by day - marking the note
-     and the lehra's own level as a different kind of quantity from the
-     accompaniment - costs it contrast here for a distinction the dark palette
-     makes some other way. The sage stays on the beat number and the LEHRA
-     VOLUME label, which are read closer. */
-  body.dark-mode .scale-note {
-    color: #FFFFFF;
-  }
 }
 
 /* Short handsets (360x640 and similar).
@@ -3457,7 +3502,7 @@ input:checked + .slider-switch:before {
      steppers hold their size: they are a hand target, not a proportion, and
      shrinking them is the first thing to regret on the smallest screen. */
   .scale-orb {
-    width: clamp(76px, min(26vw, 12vh), 100px);
+    width: clamp(84px, min(29vw, 13.3vh), 112px);
   }
 
   /* The floral rule is pinned to the bottom of the viewport, which only works

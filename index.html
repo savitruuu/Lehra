@@ -487,9 +487,9 @@
                  opaque names, so it is shown at every width. Whichever button
                  matches the current tempo is filled - see syncLayaButtons. -->
             <div class="btn-group laya-group">
-              <button class="btn" id="laya-vilambit">Vilambit<span class="laya-bpm"> (60)</span></button>
-              <button class="btn" id="laya-madhya">Madhya<span class="laya-bpm"> (120)</span></button>
-              <button class="btn" id="laya-drut">Drut<span class="laya-bpm"> (240)</span></button>
+              <button class="btn" id="laya-vilambit">Vilambit<span class="laya-bpm">(60)</span></button>
+              <button class="btn" id="laya-madhya">Madhya<span class="laya-bpm">(120)</span></button>
+              <button class="btn" id="laya-drut">Dhrut<span class="laya-bpm">(240)</span></button>
             </div>
           </div>
         </div>
@@ -573,7 +573,8 @@
 
           <div class="slider-container">
             <label class="control-label" for="settings-palette-select">Color Palette</label>
-            <select id="settings-palette-select">
+            <div class="settings-tile" id="settings-palette-tile" tabindex="0" role="button" aria-haspopup="listbox"></div>
+            <select id="settings-palette-select" class="settings-tile-select">
               <option value="default">Forest &amp; Cream (Default)</option>
               <option value="moss">Moss &amp; Sage</option>
             </select>
@@ -583,7 +584,8 @@
 
           <div class="slider-container">
             <label class="control-label" for="settings-default-taal">Default Taal</label>
-            <select id="settings-default-taal">
+            <div class="settings-tile" id="settings-taal-tile" tabindex="0" role="button" aria-haspopup="listbox"></div>
+            <select id="settings-default-taal" class="settings-tile-select">
               <option value="teentaal">Teentaal (16 Matras)</option>
               <option value="jhaptaal">Jhaptaal (10 Matras)</option>
             </select>
@@ -593,7 +595,8 @@
                order so the two read alike. Hemant is the shipped default. -->
           <div class="slider-container">
             <label class="control-label" for="settings-default-raag">Default Raag</label>
-            <select id="settings-default-raag">
+            <div class="settings-tile" id="settings-raag-tile" tabindex="0" role="button" aria-haspopup="listbox"></div>
+            <select id="settings-default-raag" class="settings-tile-select">
               <option value="kirwani">Kirwani</option>
               <option value="kirwani2">Kirwani 2</option>
               <option value="des">Des</option>
@@ -616,7 +619,8 @@
 
           <div class="slider-container">
             <label class="control-label" for="settings-default-instrument">Default Instrument</label>
-            <select id="settings-default-instrument">
+            <div class="settings-tile" id="settings-instrument-tile" tabindex="0" role="button" aria-haspopup="listbox"></div>
+            <select id="settings-default-instrument" class="settings-tile-select">
               <option value="harmonium">Harmonium</option>
               <!-- <option value="flute">Bansuri</option> -->
               <!-- <option value="violin">Violin</option> -->
@@ -629,7 +633,8 @@
 
           <div class="slider-container">
             <label class="control-label" for="settings-default-pitch">Default Pitch</label>
-            <select id="settings-default-pitch">
+            <div class="settings-tile" id="settings-pitch-tile" tabindex="0" role="button" aria-haspopup="listbox"></div>
+            <select id="settings-default-pitch" class="settings-tile-select">
               <option value="C">C</option>
               <option value="C#" selected>C#</option>
               <option value="D">D</option>

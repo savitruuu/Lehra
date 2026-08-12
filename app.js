@@ -53,6 +53,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // already bound listeners to, and reads the engine state they just set.
   safeInit("initMobileLayout", initMobileLayout);
   safeInit("initSettings", initSettings);
+  // After initSettings: the defaults it just loaded/wired are what the tiles
+  // below read for their first label.
+  safeInit("initSettingsTilePickers", initSettingsTilePickers);
   safeInit("initAnalyticsUI", initAnalyticsUI);
   safeInit("initKeyboardControls", initKeyboardControls);
 
@@ -580,7 +583,7 @@ function updatePlaybackStatusText() {
   
   let laya = "Madhya Laya";
   if (AudioEngine.bpm < 90) laya = "Vilambit Laya";
-  else if (AudioEngine.bpm > 180) laya = "Drut Laya";
+  else if (AudioEngine.bpm > 180) laya = "Dhrut Laya";
 
   const instrSelect = document.getElementById("instrument-select");
   const instrLabel = instrSelect ? instrSelect.options[instrSelect.selectedIndex].text : "";
@@ -1609,6 +1612,40 @@ function loadSettingsDefaults() {
   } catch(e) {
     console.error("Error setting defaults", e);
   }
+}
+
+// Which Settings select belongs to which tile, mirroring TILE_SELECTS above -
+// same anchored picker, same clamping, so a dropdown is a dropdown wherever it
+// opens from rather than a native list here and a custom one on the player.
+const SETTINGS_TILE_SELECTS = [
+  { select: "settings-palette-select", tile: "settings-palette-tile" },
+  { select: "settings-default-taal", tile: "settings-taal-tile" },
+  { select: "settings-default-raag", tile: "settings-raag-tile" },
+  { select: "settings-default-instrument", tile: "settings-instrument-tile" },
+  { select: "settings-default-pitch", tile: "settings-pitch-tile" }
+];
+
+function syncSettingsTileValue(select, tile) {
+  const opt = select.options[select.selectedIndex];
+  tile.textContent = opt ? opt.text : "";
+}
+
+function initSettingsTilePickers() {
+  SETTINGS_TILE_SELECTS.forEach(cfg => {
+    const select = document.getElementById(cfg.select);
+    const tile = document.getElementById(cfg.tile);
+    if (!select || !tile) return;
+
+    syncSettingsTileValue(select, tile);
+    select.addEventListener("change", () => syncSettingsTileValue(select, tile));
+    tile.addEventListener("click", () => openTilePicker(select, tile));
+    tile.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openTilePicker(select, tile);
+      }
+    });
+  });
 }
 
 // --- Populate Taal glossary info screen ---
