@@ -74,10 +74,10 @@ const RAAG_LIBRARY = {
     thaat: "Bhairavi",
     time: "Anytime",
     vadi: 0, samvadi: 7,
-    aroha_display:   "Sa Sa Re Ga Ma Pa Ma Ga",
-    avaroha_display: "Re Ga Sa | Pa Ma Pa Ga | Re Ga Sa | d(low) n(low) Pa",
+    aroha_display:   "Śa Śa Ṙe Ġa Ṁa Ṗa Ṁa Ġa",
+    avaroha_display: "Ṙe Ġa Śa | Ṗa Ṁa Ṗa Ġa | Ṙe Ġa Śa | Dhak Nik Pa",
     lehra: {
-      16: [0, 0, [2, 4], [5, 7], 5, 4, [2, 4], 0, 7, [5, 7], 4, [2, 4], 0, -4, -2, -5]
+      16: [12, 12, [14, 16], [17, 19], 17, 16, [14, 16], 12, 19, [17, 19], 16, [14, 16], 12, 8, 10, 7]
     }
   },
   mylehra2: {
