@@ -547,6 +547,11 @@ class LehraAudioEngine {
   }
 
   getResolvedNote(index, notes) {
+    if (window._activeRaagKey === "rageshree" && this.bpm >= 190) {
+      const drutNotes = [12, null, 12, null, 12, null, null, [16, 17], 14, null, 12, null, 10, 12, 9, 10];
+      return drutNotes[index % drutNotes.length];
+    }
+
     if (window._activeRaagKey === "mylehra" && this.bpm > 180) {
       const drutNotes = [12, null, null, 9, 14, null, 16, 17, 15, null, 12, 14, 11, 12, 9, 10];
       return drutNotes[index % drutNotes.length];
