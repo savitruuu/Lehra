@@ -359,7 +359,7 @@ body {
   gap: 25px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 99999px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -1084,7 +1084,7 @@ input:checked + .slider-switch:before {
 }
 
 /* Mobile responsive optimization (< 600px) */
-@media (max-width: 600px) {
+@media (max-width: 99999px) {
   :root {
     --mobile-nav-h: 64px;
   }

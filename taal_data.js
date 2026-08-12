@@ -229,6 +229,17 @@ const RAAG_LIBRARY = {
     lehra: {
       16: [12, 12, 12, [11, 12], 9, 5, 9, [11, 12], 9, 5, [4, 5], [2, 0], 4, 5, 9, 11]
     }
+  },
+  rageshree: {
+    name: "Rageshree",
+    thaat: "Khamaj",
+    time: "Late Night",
+    vadi: 4, samvadi: 10,
+    aroha_display:   "Sa Ga Ma Dha Nik Śa",
+    avaroha_display: "Śa Nik Dha Ma Ga Re Sa",
+    lehra: {
+      16: [12, 12, 12, [5, 9, 10, 12], 10, 9, 5, [9, 10, 12], 10, 9, [4, 5], [2, 0], 4, 5, 9, 10]
+    }
   }
 };
 
