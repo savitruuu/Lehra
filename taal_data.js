@@ -239,15 +239,15 @@ const RAAG_LIBRARY = {
     avaroha_display: "Dha [Pa Dha] [Ma Pa] [Ga Ma] [Re Sa] | Ga Pa Nik Dha",
     lehra: {
       // Fifteen matras, for Pancham Sawari. Matras 1-12 are one swara or two
-      // halves each, except matra 7, which is the taar-Sa turn taken as a triplet.
+      // halves each.
       //
       // Matras 13-15 are the tihai-like cadence into Sam: four swaras spread
       // evenly over three matras, so each one runs three quarter-matras rather
       // than landing on a beat. Written on a quarter-matra grid with ties -
       // Ga q0-2, Pa q3-5, Nik q6-8, Dha q9-11 - which is why the swaras cross
       // the barlines and the leading slots are null.
-      15: [12, 12, [14, 16], 14, 10, 9, [9, 10, 12], 9,
-           [7, 9], [5, 7], [4, 5], [2, 0],
+      15: [12, 12, [14, 16], 14, 10, 7, 12, 9,
+           [5, 7], [4, 5], [2, 4], [-2, 0],
            [4, null, null, 7], [null, null, 10, null], [null, 9, null, null]]
     }
   },
