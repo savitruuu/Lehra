@@ -75,7 +75,7 @@ const TABLA_BOLS = {
   ti:   ["te"],
   re:   ["re"],
 
-  // Not used by either theka as they stand - kept as the worked example of the
+  // Not used by any theka as it stands - kept as the worked example of the
   // { stroke, at } form, since a compound bol is the only reason that form
   // exists. Two closed dayan strokes on the two halves of one matra.
   //
@@ -83,6 +83,34 @@ const TABLA_BOLS = {
   // above, and firing it at itself half a matra later is heard as a sample
   // repeating rather than as two strokes.
   tite: [{ stroke: "te", at: 0 }, { stroke: "re", at: 0.5 }],
+
+  // Pancham Sawari. Most of its matras carry two bols rather than one, so the
+  // theka is written a matra at a time and the halves are placed here - a bare
+  // Dhi is still one attack, but a DhiDhi is two, half a matra apart.
+  //
+  // Dhi is ge + tin, so a compound with Dhi in it always carries both drums on
+  // that half and the dayan alone on the other.
+  dhidhi: [{ stroke: "ge", at: 0 },   { stroke: "tin", at: 0 },
+           { stroke: "ge", at: 0.5 }, { stroke: "tin", at: 0.5 }],
+  nadhi:  [{ stroke: "na", at: 0 },
+           { stroke: "ge", at: 0.5 }, { stroke: "tin", at: 0.5 }],
+  dhina:  [{ stroke: "ge", at: 0 },   { stroke: "tin", at: 0 },
+           { stroke: "na", at: 0.5 }],
+
+  // The khali vibhaag. Same shapes with the bayan taken out, which is what the
+  // wave of the hand means: Tikad answers Kat, Tuna answers Dhina, and none of
+  // them touch ge.
+  tikad: [{ stroke: "tin", at: 0 }, { stroke: "ke", at: 0.5 }],
+  tina:  [{ stroke: "tin", at: 0 }, { stroke: "na", at: 0.5 }],
+  tuna:  [{ stroke: "tu",  at: 0 }, { stroke: "na", at: 0.5 }],
+
+  // Four strokes inside one matra, at the quarters. Ti and Ta are the same
+  // closed recording - see tite above - so this is te re ke te rather than an
+  // attempt to voice all four syllables separately.
+  tirakit: [{ stroke: "te", at: 0 },   { stroke: "re", at: 0.25 },
+            { stroke: "ke", at: 0.5 }, { stroke: "te", at: 0.75 }],
+
+  katta: [{ stroke: "ke", at: 0 }, { stroke: "ta", at: 0.5 }],
 
   "-":  []
 };

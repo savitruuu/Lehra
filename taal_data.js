@@ -230,6 +230,27 @@ const RAAG_LIBRARY = {
       16: [12, 12, 12, [11, 12], 9, 5, 9, [11, 12], 9, 5, [4, 5], [2, 0], 4, 5, 9, 11]
     }
   },
+  gavati: {
+    name: "Gavati",
+    thaat: "Khamaj",
+    time: "Evening",
+    vadi: 7, samvadi: 0,
+    aroha_display:   "Śa Śa [Ṙe Ġa] Ṙe Nik Dha [Dha Nik Śa]",
+    avaroha_display: "Dha [Pa Dha] [Ma Pa] [Ga Ma] [Re Sa] | Ga Pa Nik Dha",
+    lehra: {
+      // Fifteen matras, for Pancham Sawari. Matras 1-12 are one swara or two
+      // halves each, except matra 7, which is the taar-Sa turn taken as a triplet.
+      //
+      // Matras 13-15 are the tihai-like cadence into Sam: four swaras spread
+      // evenly over three matras, so each one runs three quarter-matras rather
+      // than landing on a beat. Written on a quarter-matra grid with ties -
+      // Ga q0-2, Pa q3-5, Nik q6-8, Dha q9-11 - which is why the swaras cross
+      // the barlines and the leading slots are null.
+      15: [12, 12, [14, 16], 14, 10, 9, [9, 10, 12], 9,
+           [7, 9], [5, 7], [4, 5], [2, 0],
+           [4, null, null, 7], [null, null, 10, null], [null, 9, null, null]]
+    }
+  },
   rageshree: {
     name: "Rageshree",
     thaat: "Khamaj",
@@ -264,6 +285,30 @@ const TAAL_DATA = {
     khali_positions: [6],
     theka: ["Dhin","Na","Dhin","Dhin","Na","Tin","Na","Dhin","Dhin","Na"],
     get lehra() { return buildTaalLehra(this.matras); }
+  },
+  /**
+   * Pancham Sawari - fifteen matras in a 3-4-4-4 vibhaag, which is what makes it
+   * a sawari taal: the opening vibhaag is short, so the cycle never settles into
+   * an even count the way Teentaal or Jhaptaal do.
+   *
+   * Tali on 1, 4 and 12; khali on 8, opening the vibhaag where every Dhi becomes
+   * a Ti and the bayan drops out.
+   *
+   * Unlike the two thekas above, most of its matras carry a compound bol - two
+   * strokes inside the beat, or four at matra 10 - so the bols here rely on the
+   * { stroke, at } form in TABLA_BOLS rather than landing as single attacks.
+   */
+  pancham_sawari: {
+    name: "Pancham Sawari",
+    matras: 15,
+    vibhaags: [3, 4, 4, 4],
+    tali_positions:  [1, 4, 12],
+    khali_positions: [8],
+    theka: ["Dhi","Na","DhiDhi",
+            "Kat","DhiDhi","NaDhi","DhiNa",
+            "Tikad","Tina","Tirakit","Tuna",
+            "Katta","DhiDhi","NaDhi","DhiNa"],
+    get lehra() { return buildTaalLehra(this.matras); }
   }
 };
 
@@ -280,7 +325,7 @@ const TAAL_DATA = {
 const BOL_DEVANAGARI = {
   Dha:  "धा",
   Dhin: "धिं",
-  Dhi:  "धि",
+  Dhi:  "धी",
   Dhun: "धुं",
   Na:   "ना",
   Tin:  "तिं",
@@ -294,7 +339,18 @@ const BOL_DEVANAGARI = {
   Te:   "ते",
   Ti:   "टि",
   Re:   "रे",
-  TiTe: "टिते"
+  TiTe: "टिते",
+
+  // Pancham Sawari. Its compound bols are written as one word per matra, the
+  // way the theka is read, rather than split at the syllable.
+  DhiDhi:  "धीधी",
+  NaDhi:   "नाधी",
+  DhiNa:   "धीना",
+  Tikad:   "तीकड़",
+  Tina:    "तीना",
+  Tirakit: "तिरकिट",
+  Tuna:    "तूना",
+  Katta:   "कत्ता"
 };
 
 function bolToDevanagari(bol) {
