@@ -247,7 +247,7 @@ const RAAG_LIBRARY = {
       // Ga q0-2, Pa q3-5, Nik q6-8, Dha q9-11 - which is why the swaras cross
       // the barlines and the leading slots are null.
       15: [12, 12, [14, 16], 14, 10, 7, 12, 9,
-           [5, 7], [4, 5], [2, 4], [-2, 0],
+           [5, 7], [4, 5], [2, 0], [-2, 0],
            [4, null, null, 7], [null, null, 10, null], [null, 9, null, null]]
     }
   },
