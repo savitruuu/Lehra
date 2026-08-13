@@ -261,6 +261,17 @@ const RAAG_LIBRARY = {
     lehra: {
       16: [12, 12, 12, [5, 9, 10, 12], 10, 9, 5, [9, 10, 12], 10, 9, [4, 5], [2, 0], 4, 5, 9, 10]
     }
+  },
+  jaijaiwanti: {
+    name: "Jaijaiwanti",
+    thaat: "Khamaj",
+    time: "Night",
+    vadi: 2, samvadi: 7,
+    aroha_display:   "Sa Re Ga Ma Pa Ni Śa | Ṙe Śa",
+    avaroha_display: "Śa Nik Dha Pa | Ma Ga Re Sa | Ni. Sa Re",
+    lehra: {
+      7: [12, 12, 14, 11, 12, 9, 10]
+    }
   }
 };
 
@@ -308,6 +319,15 @@ const TAAL_DATA = {
             "Kat","DhiDhi","NaDhi","DhiNa",
             "Tikad","Tina","Tirakit","Tuna",
             "Katta","DhiDhi","NaDhi","DhiNa"],
+    get lehra() { return buildTaalLehra(this.matras); }
+  },
+  roopak: {
+    name: "Roopak",
+    matras: 7,
+    vibhaags: [3, 2, 2],
+    tali_positions:  [4, 6],
+    khali_positions: [1],
+    theka: ["Tin","Tin","Na","Dhin","Na","Dhin","Na"],
     get lehra() { return buildTaalLehra(this.matras); }
   }
 };
