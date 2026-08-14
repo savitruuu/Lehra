@@ -156,6 +156,7 @@ function initPlayerControls() {
   AudioEngine.instrument = instrumentSelect.value;
   AudioEngine.pitch = pitchSelect.value;
   AudioEngine.bpm = parseInt(bpmSlider.value);
+  updateScreensaverTempo();
   window._activeRaagKey = raagSelect ? raagSelect.value : "kirwani";
 
   // Sync callbacks
@@ -378,6 +379,7 @@ function initPlayerControls() {
     updatePlaybackStatusText();
     syncLayaButtons(val);
     refreshRangeFill(bpmSlider);
+    updateScreensaverTempo();
   };
 
   bpmSlider.addEventListener("input", (e) => {
@@ -603,8 +605,10 @@ function updatePlaybackStatusText() {
 // weekly chart. It runs while the lehra plays and is banked on pause.
 function startPracticeTimer() {
   practiceSeconds = 0;
+  updateScreensaverTimer();
   practiceTimerInterval = setInterval(() => {
     practiceSeconds++;
+    updateScreensaverTimer();
   }, 1000);
 }
 
@@ -1171,6 +1175,33 @@ function openTilePicker(select, tile) {
 const SCREENSAVER_DELAY_MS = 30000;
 let screensaverTimer = null;
 
+function formatTime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const mStr = String(m).padStart(2, '0');
+  const sStr = String(s).padStart(2, '0');
+  if (h > 0) {
+    const hStr = String(h).padStart(2, '0');
+    return `${hStr}:${mStr}:${sStr}`;
+  }
+  return `${mStr}:${sStr}`;
+}
+
+function updateScreensaverTempo() {
+  const el = document.getElementById("screensaver-tempo");
+  if (el) {
+    el.textContent = (AudioEngine.bpm || 120) + " BPM";
+  }
+}
+
+function updateScreensaverTimer() {
+  const el = document.getElementById("screensaver-playtime");
+  if (el) {
+    el.textContent = formatTime(practiceSeconds);
+  }
+}
+
 /**
  * True when the avartan chakra is actually on screen.
  *
@@ -1207,7 +1238,11 @@ function noteActivity() {
   screensaverTimer = setTimeout(() => {
     if (!MOBILE_MQ.matches || !transportIsRunning()) return;
     const el = document.getElementById("screensaver");
-    if (el) el.classList.add("active");
+    if (el) {
+      updateScreensaverTempo();
+      updateScreensaverTimer();
+      el.classList.add("active");
+    }
   }, SCREENSAVER_DELAY_MS);
 }
 
