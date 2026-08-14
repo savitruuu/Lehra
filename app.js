@@ -804,7 +804,16 @@ function setupCanvasVisualizer() {
 
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = Math.min(centerX, centerY) * 0.75;
+
+    // Inside the desktop panel the ring keeps a wide margin, since the panel has
+    // its own padding and other cards sit alongside it. In the screensaver it
+    // has the whole screen to itself and the readout in the middle needs the
+    // room, so it is drawn out to the edge instead - back off only far enough to
+    // clear the glow around the current matra dot, which is painted outside the
+    // ring and would otherwise clip against the canvas edge.
+    const half = Math.min(centerX, centerY);
+    const inScreensaver = !!canvas.closest(".screensaver");
+    const radius = inScreensaver ? Math.max(half * 0.75, half - 26) : half * 0.75;
     const TOP = -Math.PI / 2;
 
     const position = avartanPosition();

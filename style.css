@@ -2274,7 +2274,9 @@ input:checked + .slider-switch:before {
     z-index: 400;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    /* Small: the ring is drawn to fit whatever box it gets, so every pixel of
+       padding here comes straight off its diameter. */
+    padding: 10px;
     background: var(--bg-primary);
     opacity: 0;
     visibility: hidden;
