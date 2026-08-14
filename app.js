@@ -377,6 +377,7 @@ function initPlayerControls() {
     AudioEngine.bpm = val;
     updatePlaybackStatusText();
     syncLayaButtons(val);
+    syncScreensaverReadout();
     refreshRangeFill(bpmSlider);
   };
 
@@ -415,6 +416,7 @@ function initPlayerControls() {
   // Reflect the tempo the app actually starts on, and paint every slider's
   // filled portion for the values restored from settings.
   syncLayaButtons(AudioEngine.bpm);
+  syncScreensaverReadout();
   refreshAllRangeFills();
 
   // Main Play Button Toggle
@@ -603,8 +605,10 @@ function updatePlaybackStatusText() {
 // weekly chart. It runs while the lehra plays and is banked on pause.
 function startPracticeTimer() {
   practiceSeconds = 0;
+  syncScreensaverReadout();
   practiceTimerInterval = setInterval(() => {
     practiceSeconds++;
+    syncScreensaverReadout();
   }, 1000);
 }
 
@@ -622,6 +626,27 @@ function stopPracticeTimer() {
   }
 
   practiceSeconds = 0;
+  syncScreensaverReadout();
+}
+
+/**
+ * Keeps the two readings inside the screensaver's ring current: the tempo above
+ * the matra number and how long this session has been running below it.
+ *
+ * Both are written whether or not the screensaver is showing - they are two
+ * short strings a second, and writing them unconditionally means the graphic is
+ * already correct the moment it fades in.
+ */
+function syncScreensaverReadout() {
+  const tempo = document.getElementById("screensaver-tempo");
+  if (tempo) tempo.textContent = AudioEngine.bpm + " BPM";
+
+  const time = document.getElementById("screensaver-time");
+  if (time) {
+    const mins = Math.floor(practiceSeconds / 60);
+    const secs = practiceSeconds % 60;
+    time.textContent = mins + ":" + String(secs).padStart(2, "0");
+  }
 }
 
 /**

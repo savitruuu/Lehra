@@ -2303,6 +2303,32 @@ input:checked + .slider-switch:before {
   .screensaver .beat-name {
     font-size: clamp(18px, min(6vw, 6vh), 32px);
   }
+
+  /* Tempo over the matra number, session length under the vibhaag markers -
+     both inside the ring, so the whole reading is one block at the centre.
+     Quieter than the beat itself: they are reference, not the pulse. */
+  .screensaver .screensaver-readout {
+    display: block;
+    font-size: clamp(13px, min(4vw, 4vh), 22px);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+  }
+
+  .screensaver #screensaver-tempo {
+    margin-bottom: 6px;
+  }
+
+  .screensaver #screensaver-time {
+    margin-top: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Only the screensaver shows these; in the desktop tracker the tempo and the
+   session both have their own place on the screen already. */
+.screensaver-readout {
+  display: none;
 }
 
 /* The tracker is hidden rather than removed while the screensaver is idle, so

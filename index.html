@@ -326,11 +326,17 @@
                  readout at its centre stays in the DOM, below. -->
             <canvas class="canvas-visualizer" id="visualizer"></canvas>
             <div class="beat-display">
+              <!-- Tempo and session length, shown only while the screensaver
+                   holds the screen: with every other control out of sight,
+                   these are the two readings a player still wants. Hidden in
+                   the desktop tracker, where both live in the panels below. -->
+              <div class="screensaver-readout" id="screensaver-tempo">120 BPM</div>
               <div class="beat-number" id="beat-num">1</div>
               <div class="beat-name" id="beat-label">SAM</div>
               <!-- Vibhaag clap pattern, e.g. Teentaal reads X 2 0 3.
                    The current vibhaag lights up as the cycle turns. -->
               <div class="vibhaag-markers" id="vibhaag-markers"></div>
+              <div class="screensaver-readout" id="screensaver-time">0:00</div>
             </div>
           </div>
 
