@@ -2315,12 +2315,16 @@ input:checked + .slider-switch:before {
     color: var(--text-secondary);
   }
 
+  /* Pushed well clear of the matra number and the markers: the gap is what
+     keeps the centre reading as the beat with two notes around it, rather than
+     one four-line stack. Scaled off the ring so it opens up on a big screen
+     without crowding the arc on a small one. */
   .screensaver #screensaver-tempo {
-    margin-bottom: 6px;
+    margin-bottom: clamp(20px, min(7vw, 7vh), 44px);
   }
 
   .screensaver #screensaver-time {
-    margin-top: 12px;
+    margin-top: clamp(20px, min(7vw, 7vh), 44px);
     font-variant-numeric: tabular-nums;
   }
 }
