@@ -112,6 +112,36 @@ const TABLA_BOLS = {
 
   katta: [{ stroke: "ke", at: 0 }, { stroke: "ta", at: 0.5 }],
 
+  // --- The theka-only taals ---
+  //
+  // Ektaal. Dhage is a dha followed by a bare bayan on the half, so the two
+  // drums land together and the bayan alone answers; tirakita is the same
+  // four-stroke figure as tirakit above, under the spelling Ektaal is
+  // usually written in.
+  tu:       ["tu"],
+  dhage:    [{ stroke: "ge", at: 0 }, { stroke: "na", at: 0 },
+             { stroke: "ge", at: 0.5 }],
+  tirakita: [{ stroke: "te", at: 0 },   { stroke: "re", at: 0.25 },
+             { stroke: "ke", at: 0.5 }, { stroke: "te", at: 0.75 }],
+
+  // Bhajan theka, which is counted in half-matras rather than in matras.
+  sna:      [{ stroke: "na", at: 0.5 }],
+  dhindhin: [{ stroke: "ge", at: 0 },   { stroke: "tin", at: 0 },
+             { stroke: "ge", at: 0.5 }, { stroke: "tin", at: 0.5 }],
+  tintin:   [{ stroke: "tin", at: 0 },  { stroke: "tin", at: 0.5 }],
+
+  // New Bhajan Theka strokes
+  nadhin:  [{ stroke: "na", at: 0 }, { stroke: "ge", at: 0.5 }, { stroke: "tin", at: 0.5 }],
+  sdhin:   [{ stroke: "ge", at: 0.5 }, { stroke: "tin", at: 0.5 }],
+  natin:   [{ stroke: "na", at: 0 }, { stroke: "tin", at: 0.5 }],
+  stin:    [{ stroke: "tin", at: 0.5 }],
+  "dhin—": [{ stroke: "ge", at: 0 }, { stroke: "tin", at: 0 }],
+  "na—":   [{ stroke: "na", at: 0 }],
+  "dhin-": [{ stroke: "ge", at: 0 }, { stroke: "tin", at: 0 }],
+  "na-":   [{ stroke: "na", at: 0 }],
+  "dhin–": [{ stroke: "ge", at: 0 }, { stroke: "tin", at: 0 }],
+  "na–":   [{ stroke: "na", at: 0 }],
+
   "-":  []
 };
 

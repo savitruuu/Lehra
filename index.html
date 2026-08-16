@@ -100,6 +100,20 @@
       <!-- 1. PLAYER SCREEN -->
       <section class="screen active" id="player-screen">
 
+        <!-- Tabla accompaniment: the player with everything melodic taken out
+             of it, for a singer who wants only the theka behind them. Shown
+             while body.tabla-mode is set - the same screen rather than a second
+             copy of it, so the scale dial, the taal picker and the tempo row
+             are the very same controls, in the same places, and nothing has to
+             be kept in step with anything. This bar is the only new furniture
+             and the only way back. -->
+        <div class="tabla-mode-bar" id="tabla-mode-bar">
+          <button class="tabla-mode-back" id="tabla-mode-back" aria-label="Back to the lehra player">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+          </button>
+          <h4>Tabla Accompaniment</h4>
+        </div>
+
         <!-- Phone-only scale header: the current scale as a dial, with the two
              arrows stepping it a semitone at a time. It drives the same
              #pitch-select the desktop layout uses, so there is one source of
@@ -217,10 +231,19 @@
               <option value="jhaptaal">Jhaptaal (10 Matras)</option>
               <option value="pancham_sawari">Pancham Sawari (15 Matras)</option>
               <option value="roopak">Roopak (7 Matras)</option>
+              <!-- Theka-only, and offered only in tabla accompaniment mode -
+                   see thekaOnly in taal_data.js and openTilePicker in app.js.
+                   They have no lehra of their own, and the lehra player would
+                   otherwise hand them a fragment of a sixteen-matra line. -->
+              <option value="dadra" data-theka-only="1">Dadra (6 Matras)</option>
+              <option value="keherwa" data-theka-only="1">Keherwa (8 Matras)</option>
+              <option value="bhajan" data-theka-only="1">Bhajan Theka (8 Matras)</option>
+              <option value="ektaal" data-theka-only="1">Ektaal (12 Matras)</option>
+              <option value="deepchandi" data-theka-only="1">Deepchandi (14 Matras)</option>
             </select>
           </div>
 
-          <div class="control-card">
+          <div class="control-card" id="card-instrument">
             <label class="control-label" for="instrument-select">Instrument</label>
             <select id="instrument-select">
               <option value="harmonium">Harmonium</option>
@@ -233,7 +256,7 @@
             </select>
           </div>
 
-          <div class="control-card">
+          <div class="control-card" id="card-raag">
             <label class="control-label" for="raag-select">Raag</label>
             <select id="raag-select">
               <option value="kirwani">Kirwani</option>
@@ -307,6 +330,12 @@
             <div class="tile" id="tile-instrument"><span class="tile-value" id="tile-instrument-value"></span></div>
             <div class="tile" id="tile-taal"><span class="tile-value" id="tile-taal-value"></span></div>
             <div class="tile" id="tile-raag"><span class="tile-value" id="tile-raag-value"></span></div>
+            <!-- Accompaniment mode only. The tabla's heading and level move in
+                 here from the levels column, under Taal: with the raag and the
+                 instrument gone, this column is the taal and the drum that
+                 plays it, and the right-hand column is left for the two things
+                 a singer balances against them. -->
+            <div class="mixer-cell" id="mixer-cell-tabla-left"></div>
           </div>
 
           <div class="control-section" id="mixer-section">
@@ -356,7 +385,7 @@
                 <!-- On phones this is what opens sheet-tanpura for Speed - the
                      chevron is the only new mark, the word itself is the same
                      "Tanpura" already used on desktop. -->
-                <h4 id="tanpura-heading">Tanpura <svg class="tanpura-settings-chevron" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></h4>
+                <h4 id="tanpura-heading">Tanpura <svg class="mix-settings-chevron" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></h4>
               </div>
 
               <!-- The first string is Sa-Pa, always. Sa-Ma is the tuning for
@@ -429,7 +458,9 @@
                 <button class="btn btn-round mix-play-btn" id="tabla-play-btn" aria-label="Play Tabla">
                   <svg id="tabla-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </button>
-                <h4>Tabla</h4>
+                <!-- Same chevron as Tanpura's, opening sheet-tabla - which
+                     holds the one control below that is not about the mix. -->
+                <h4 id="tabla-heading">Tabla <svg class="mix-settings-chevron" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></h4>
               </div>
 
               <div class="slider-container" id="tabla-volume-block">
@@ -442,6 +473,12 @@
                 <input type="range" id="tabla-volume" min="0" max="100" value="70">
                 <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;" id="tabla-source-note"></p>
               </div>
+
+              <!-- The way into tabla accompaniment: the same player stripped to
+                   what a singer needs behind a tabla - see enterTablaMode in
+                   app.js, which stops everything first so the switch is silent.
+                   Hidden once you are already in there. -->
+              <button class="btn tabla-accompaniment-btn" id="tabla-accompaniment-btn">Tabla Accompaniment</button>
             </div>
           </div>
         </div>
@@ -468,7 +505,7 @@
                beside it - the BPM readout to the right already says "tempo" in
                the only terms that matter. -->
           <div class="slider-header">
-            <span class="control-label" style="font-size: 16px;">Play Lehra</span>
+            <span class="control-label" style="font-size: 16px;" id="transport-label">Play Lehra</span>
             <span class="slider-val" id="bpm-val" style="font-size: 24px;">120 BPM</span>
           </div>
 
@@ -665,7 +702,6 @@
 
           <button class="btn btn-primary" id="settings-save-btn" style="margin-top: 10px;">Save Configuration Defaults</button>
 
-          <!--
           <hr style="border: 0; border-top: 1px solid var(--panel-border);">
 
           <div>
@@ -698,7 +734,6 @@
                  style="color: var(--accent-cyan);">CC BY 3.0</a>.
             </p>
           </div>
-          -->
         </div>
       </section>
 

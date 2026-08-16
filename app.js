@@ -119,7 +119,6 @@ function initNavigation() {
 // --- Player Settings & Core Logic ---
 function initPlayerControls() {
   const playBtn = document.getElementById("play-btn");
-  const playIcon = document.getElementById("play-icon");
   const taalSelect = document.getElementById("taal-select");
   const instrumentSelect = document.getElementById("instrument-select");
   const raagSelect = document.getElementById("raag-select");
@@ -421,12 +420,30 @@ function initPlayerControls() {
 
   // Main Play Button Toggle
   playBtn.addEventListener("click", async () => {
+    // In tabla accompaniment mode this same button is the theka's transport -
+    // there is no lehra to start, and the tabla's own button in the mixer cell
+    // is hidden precisely so this is the only one.
+    if (tablaModeActive) {
+      if (AudioEngine.tablaIsPlaying) {
+        AudioEngine.stopTabla();
+        stopPracticeTimer();
+      } else {
+        playBtn.disabled = true;
+        const started = await AudioEngine.startTabla();
+        playBtn.disabled = false;
+        if (started) startPracticeTimer();
+        else updateTablaSourceNote(true);
+      }
+      syncTablaButton();
+      syncMainPlayButton();
+      noteActivity();
+      return;
+    }
+
     if (AudioEngine.isPlaying) {
       // Pause. The tanpura is independent - it keeps droning unless the user
       // stops it from its own button in the mixer.
       AudioEngine.stop();
-      playIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
-      playBtn.classList.remove("playing");
       stopPracticeTimer();
     } else {
       // Start Playback
@@ -437,10 +454,10 @@ function initPlayerControls() {
       // matra clock instead, so tapping the master output for amplitude would
       // be a node connected to nothing that reads it.
 
-      playIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
-      playBtn.classList.add("playing");
       startPracticeTimer();
     }
+
+    syncMainPlayButton();
 
     // Starts the countdown to the screensaver, or cancels it on pause.
     noteActivity();
@@ -510,6 +527,95 @@ function updateTablaSourceNote(failed = false) {
   note.textContent = failed
     ? "Tabla recordings could not be loaded - serve the app over http rather than opening the file directly."
     : "";
+}
+
+// --- Tabla accompaniment mode ---
+//
+// The same player screen with the lehra hidden (see the tabla-mode block in
+// style.css), for a singer who wants the theka behind them and the tanpura to
+// pitch against, but no melody played at them. It is
+// deliberately not a second screen: the scale dial, the taal picker, the tempo
+// row and the metronome are the very same controls in the very same places, so
+// there is no duplicated state to keep in step and nothing to restyle.
+//
+// The one thing that changes behaviour rather than visibility is the transport's
+// play button, which starts the tabla here instead of the lehra.
+let tablaModeActive = false;
+
+/**
+ * The main play button reflects whichever transport it currently drives - the
+ * lehra normally, the tabla in accompaniment mode.
+ */
+function syncMainPlayButton() {
+  const btn = document.getElementById("play-btn");
+  const icon = document.getElementById("play-icon");
+  if (!btn || !icon) return;
+
+  const playing = tablaModeActive ? AudioEngine.tablaIsPlaying : AudioEngine.isPlaying;
+  const what = tablaModeActive ? "Tabla" : "Lehra";
+
+  icon.innerHTML = playing
+    ? `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`
+    : `<path d="M8 5v14l11-7z"/>`;
+  btn.classList.toggle("playing", playing);
+  btn.setAttribute("aria-label", (playing ? "Pause " : "Play ") + what);
+
+  const label = document.getElementById("transport-label");
+  if (label) label.textContent = "Play " + what;
+}
+
+/**
+ * Stops every transport at once - lehra, tanpura, metronome and tabla.
+ *
+ * Used on the way into accompaniment mode, so the switch is silent rather than
+ * leaving a drone and a lehra running behind a screen that no longer has the
+ * controls to stop them.
+ */
+function stopAllTransports() {
+  if (AudioEngine.isPlaying) {
+    AudioEngine.stop();
+    stopPracticeTimer();
+  }
+  if (AudioEngine.tanpuraPlaying) AudioEngine.stopTanpura();
+  if (AudioEngine.metronomeIsPlaying) AudioEngine.stopMetronome();
+  if (AudioEngine.tablaIsPlaying) AudioEngine.stopTabla();
+
+  syncTanpuraButton();
+  syncMetronomeButton();
+  syncTablaButton();
+  syncMainPlayButton();
+  updateTanpuraSourceNote();
+}
+
+function setTablaMode(on) {
+  if (tablaModeActive === on) return;
+
+  // Silence first, in both directions: crossing between the two is a change of
+  // what the player is for, not a change of what is playing.
+  stopAllTransports();
+
+  tablaModeActive = on;
+  document.body.classList.toggle("tabla-mode", on);
+
+  // On the way out, a theka-only taal has to go back to one the lehra player
+  // can actually play - otherwise the taal tile would be left reading Dadra
+  // on a screen whose melody has no Dadra to play.
+  if (!on) {
+    const taalSelect = document.getElementById("taal-select");
+    const opt = taalSelect && taalSelect.options[taalSelect.selectedIndex];
+    if (opt && opt.dataset.thekaOnly) {
+      taalSelect.value = "teentaal";
+      taalSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
+
+  // The tabla's controls have a different home in this mode - see the third
+  // argument to registerRelocation above.
+  applyLayoutRelocations();
+
+  closeOverlays();
+  syncMainPlayButton();
+  noteActivity();
 }
 
 // Tells the user whether they are hearing the recording or the synth fallback,
@@ -942,11 +1048,15 @@ const _relocations = [];
  * index: the whitespace text nodes around it stay put, so re-inserting before
  * the same sibling restores the original order exactly.
  */
-function registerRelocation(el, mobileParent) {
+function registerRelocation(el, mobileParent, tablaParent) {
   if (!el || !mobileParent) return;
   _relocations.push({
     el,
     mobileParent,
+    // Optional third home, for the few controls that sit somewhere else again
+    // in tabla accompaniment mode. Takes precedence over the phone home while
+    // that mode is on, and is simply absent for everything else.
+    tablaParent: tablaParent || null,
     deskParent: el.parentNode,
     deskNext: el.nextSibling
   });
@@ -955,8 +1065,12 @@ function registerRelocation(el, mobileParent) {
 function applyLayoutRelocations() {
   const mobile = MOBILE_MQ.matches;
   _relocations.forEach(r => {
-    if (mobile) {
-      if (r.el.parentNode !== r.mobileParent) r.mobileParent.appendChild(r.el);
+    const parent = (tablaModeActive && r.tablaParent) ? r.tablaParent
+                 : mobile ? r.mobileParent
+                 : null;
+
+    if (parent) {
+      if (r.el.parentNode !== parent) parent.appendChild(r.el);
     } else if (r.el.parentNode !== r.deskParent || r.el.nextSibling !== r.deskNext) {
       r.deskParent.insertBefore(r.el, r.deskNext);
     }
@@ -1138,6 +1252,12 @@ function openTilePicker(select, tile) {
   panel.innerHTML = "";
 
   Array.from(select.options).forEach(opt => {
+    // Theka-only taals - Dadra, Keherwa and the rest - are listed only in
+    // accompaniment mode. They have no lehra written for their cycle length,
+    // so offering them to the lehra player would be offering silence or a
+    // fragment of somebody else's line.
+    if (opt.dataset.thekaOnly && !tablaModeActive) return;
+
     const row = document.createElement("div");
     row.className = "tile-picker-option";
     if (opt.value === select.value) row.classList.add("selected");
@@ -1425,8 +1545,11 @@ function initMobileLayout() {
   registerRelocation(document.getElementById("tanpura-volume-block"), cellTanpura);
   registerRelocation(document.getElementById("metronome-mix-head"), cellMetronome);
   registerRelocation(document.getElementById("metronome-volume-block"), cellMetronome);
-  registerRelocation(document.getElementById("tabla-mix-head"), cellTabla);
-  registerRelocation(document.getElementById("tabla-volume-block"), cellTabla);
+  // The tabla is the exception: in accompaniment mode its heading and level
+  // move again, out of the levels column and under Taal on the left.
+  const cellTablaLeft = document.getElementById("mixer-cell-tabla-left");
+  registerRelocation(document.getElementById("tabla-mix-head"), cellTabla, cellTablaLeft);
+  registerRelocation(document.getElementById("tabla-volume-block"), cellTabla, cellTablaLeft);
 
   applyLayoutRelocations();
 
@@ -1454,6 +1577,26 @@ function initMobileLayout() {
   // play button sitting right next to it.
   const tanpuraHeading = document.getElementById("tanpura-heading");
   if (tanpuraHeading) tanpuraHeading.addEventListener("click", () => openSheet("sheet-tanpura"));
+
+  // Tabla's heading opens its own sheet the same way. On phones the volume has
+  // moved out to the mini mixer, so what is left behind the chevron is the way
+  // into accompaniment mode.
+  // ...except once you are inside accompaniment mode, where the sheet's only
+  // contents are the level already on screen and the button that got you here.
+  const tablaHeading = document.getElementById("tabla-heading");
+  if (tablaHeading) {
+    tablaHeading.addEventListener("click", () => {
+      if (!tablaModeActive) openSheet("sheet-tabla");
+    });
+  }
+
+  const tablaAccompanimentBtn = document.getElementById("tabla-accompaniment-btn");
+  if (tablaAccompanimentBtn) {
+    tablaAccompanimentBtn.addEventListener("click", () => setTablaMode(true));
+  }
+
+  const tablaModeBack = document.getElementById("tabla-mode-back");
+  if (tablaModeBack) tablaModeBack.addEventListener("click", () => setTablaMode(false));
 
   document.querySelectorAll(".mix-sheet .sheet-handle").forEach(handle => {
     handle.addEventListener("click", closeOverlays);

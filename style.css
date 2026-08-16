@@ -879,7 +879,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .app-scrim,
 .screensaver,
 .tile-picker,
-.tanpura-settings-chevron,
+.mix-settings-chevron,
 .mandala-ring {
   display: none;
 }
@@ -2051,13 +2051,14 @@ input:checked + .slider-switch:before {
     margin: 0 !important;
   }
 
-  /* Tapping the heading is what opens sheet-tanpura; the chevron is the same
-     affordance the launcher tiles and the scale orb already use. */
-  #tanpura-heading {
+  /* Tapping the heading is what opens that instrument's sheet; the chevron is
+     the same affordance the launcher tiles and the scale orb already use. */
+  #tanpura-heading,
+  #tabla-heading {
     cursor: pointer;
   }
 
-  .tanpura-settings-chevron {
+  .mix-settings-chevron {
     display: inline-block;
     width: 13px;
     height: 13px;
@@ -2341,6 +2342,98 @@ input:checked + .slider-switch:before {
    its animation frame costs nothing until it is on screen. */
 .screensaver:not(.active) {
   pointer-events: none;
+}
+
+
+/* ============================================================================
+   TABLA ACCOMPANIMENT MODE
+   ============================================================================
+   The player with the lehra taken out of it: for a singer who wants the theka
+   behind them, and the drone to pitch against, but no melody played at them.
+   It is the same screen rather than a second copy
+   of it - the scale dial, the taal picker, the tempo row and the metronome are
+   the very same controls in the very same places, so there is nothing to keep
+   in step and nothing to restyle. All this section does is hide what a singer
+   has no use for, and the transport's play button changes what it starts (see
+   tablaModeActive in app.js).
+   ========================================================================= */
+
+.tabla-mode-bar {
+  display: none;
+}
+
+body.tabla-mode .tabla-mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tabla-mode-bar h4 {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.tabla-mode-back {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.tabla-mode-back svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* The lehra and everything that only serves it - the raag and instrument it is
+   played on, its status line, its own level. The tabla's
+   own play button goes too: in this mode the main play button below is the
+   tabla's, and two switches for one thing is one too many. */
+body.tabla-mode #card-instrument,
+body.tabla-mode #card-raag,
+body.tabla-mode #tile-instrument,
+body.tabla-mode #tile-raag,
+body.tabla-mode #lehra-volume-block,
+body.tabla-mode #lehra-volume-slot,
+body.tabla-mode .transport-status,
+body.tabla-mode #tabla-play-btn,
+/* Emptied by the relocation above - its contents are in the left column now. */
+body.tabla-mode #mixer-cell-tabla,
+/* Nothing left to open: the sheet behind it exists to offer this very mode. */
+body.tabla-mode #tabla-heading .mix-settings-chevron {
+  display: none;
+}
+
+/* The slot that receives them, which is furniture on the lehra player. */
+body:not(.tabla-mode) #mixer-cell-tabla-left {
+  display: none;
+}
+
+body.tabla-mode #tabla-heading {
+  cursor: default;
+}
+
+/* The mixer cells are two-column grids with the play button in the first
+   column, so dropping the tabla's outright would pull its volume slider left
+   of the ones that keep theirs. Held open instead. */
+body.tabla-mode .mixer-cell #tabla-play-btn {
+  display: block;
+  visibility: hidden;
+}
+
+/* The sheet is otherwise all mix controls, so its one button gets room of its
+   own. Full width: it is the only thing to press in there. */
+.tabla-accompaniment-btn {
+  width: 100%;
+  justify-content: center;
 }
 
 
@@ -3096,7 +3189,7 @@ input:checked + .slider-switch:before {
     grid-row: 4;
   }
 
-  .tanpura-settings-chevron {
+  .mix-settings-chevron {
     width: 12px;
     height: 12px;
     color: var(--text-muted);

@@ -329,6 +329,112 @@ const TAAL_DATA = {
     khali_positions: [1],
     theka: ["Tin","Tin","Na","Dhin","Na","Dhin","Na"],
     get lehra() { return buildTaalLehra(this.matras); }
+  },
+
+  /* ----------------------------------------------------------------------
+     THEKA-ONLY TAALS
+     ----------------------------------------------------------------------
+     Added for tabla accompaniment, where a singer needs the theka and there
+     is no lehra playing at all. They carry thekaOnly, and the taal picker
+     leaves them out unless the app is in accompaniment mode - the lehra
+     library is written in sixteens and tens, and a Dadra or a Deepchandi
+     would otherwise be given the first six or fourteen notes of a Teentaal
+     line, which is not that raag's lehra in that taal, just a fragment.
+
+     Their lehra getter is still here so nothing that reads a taal has to
+     know about the distinction; it simply never runs while they are hidden
+     from the lehra player.
+     -------------------------------------------------------------------- */
+
+  /**
+   * Dadra - six matras in two threes, the light-classical cycle for thumri,
+   * dadra and a great many bhajans. Tali on 1, khali opening the second
+   * vibhaag at 4, where every Dhin becomes a Tin and the bayan drops out.
+   */
+  dadra: {
+    name: "Dadra",
+    matras: 6,
+    thekaOnly: true,
+    vibhaags: [3, 3],
+    tali_positions:  [1],
+    khali_positions: [4],
+    theka: ["Dha","Dhin","Na","Dha","Tin","Na"],
+    get lehra() { return buildTaalLehra(this.matras); }
+  },
+
+  /**
+   * Keherwa - eight matras in two fours, and the commonest cycle in film,
+   * folk and devotional song. Tali on 1, khali on 5.
+   */
+  keherwa: {
+    name: "Keherwa",
+    matras: 8,
+    thekaOnly: true,
+    vibhaags: [4, 4],
+    tali_positions:  [1],
+    khali_positions: [5],
+    theka: ["Dha","Ge","Na","Ti","Na","Ka","Dhin","Na"],
+    get lehra() { return buildTaalLehra(this.matras); }
+  },
+
+  /**
+   * Bhajan theka - eight matras in two fours, tali on 1 and khali on 5.
+   *
+   * Counted in half-matras, which is what gives it its lilt:
+   *
+   *     1        2        3         4        5        6        7        8
+   *     Dhin —   Na Dhin  S Dhin    Na —     Dhin —   Na Tin   S Tin    Na —
+   *     X                                    0
+   */
+  bhajan: {
+    name: "Bhajan Theka",
+    matras: 8,
+    thekaOnly: true,
+    vibhaags: [4, 4],
+    tali_positions:  [1],
+    khali_positions: [5],
+    theka: ["Dhin —", "Na Dhin", "S Dhin", "Na —", "Dhin —", "Na Tin", "S Tin", "Na —"],
+    get lehra() { return buildTaalLehra(this.matras); }
+  },
+
+  /**
+   * Ektaal - twelve matras in six twos, the great vilambit khayal cycle and
+   * equally at home at drut. Tali on 1, 5, 9 and 11; khali on 3 and 7, the
+   * two vibhaags where Dhage Tirakita is answered by its bayan-less shapes.
+   */
+  ektaal: {
+    name: "Ektaal",
+    matras: 12,
+    thekaOnly: true,
+    vibhaags: [2, 2, 2, 2, 2, 2],
+    tali_positions:  [1, 5, 9, 11],
+    khali_positions: [3, 7],
+    theka: ["Dhin","Dhin","Dhage","Tirakita","Tu","Na",
+            "Kat","Ta","Dhage","Tirakita","Dhin","Na"],
+    get lehra() { return buildTaalLehra(this.matras); }
+  },
+
+  /**
+   * Deepchandi (Chanchar) - fourteen matras in 3-4-3-4, the thumri cycle.
+   * Tali on 1, 4 and 11; khali on 8.
+   *
+   * The dash is a real matra that carries no stroke: the beat is counted and
+   * the previous bol is left to ring through it. TABLA_BOLS maps "-" to an
+   * empty stroke list, so it is silent by construction rather than by a
+   * missing entry.
+   */
+  deepchandi: {
+    name: "Deepchandi",
+    matras: 14,
+    thekaOnly: true,
+    vibhaags: [3, 4, 3, 4],
+    tali_positions:  [1, 4, 11],
+    khali_positions: [8],
+    theka: ["Dha","Dhin","-",
+            "Dha","Dha","Tin","-",
+            "Ta","Tin","-",
+            "Dha","Dha","Dhin","-"],
+    get lehra() { return buildTaalLehra(this.matras); }
   }
 };
 
@@ -370,7 +476,29 @@ const BOL_DEVANAGARI = {
   Tina:    "तीना",
   Tirakit: "तिरकिट",
   Tuna:    "तूना",
-  Katta:   "कत्ता"
+  Katta:   "कत्ता",
+
+  // The theka-only taals. Same rule as above: one word per matra, so a
+  // compound bol is written joined rather than split at the syllable.
+  Tu:       "तू",
+  Dhage:    "धागे",
+  Tirakita: "तिरकिट",
+  // Bhajan theka. The avagraha marks the silent first half of the matra, so
+  // the rest is read as a rest rather than guessed at from a gap.
+  SNa:      "ऽना",
+  DhinDhin: "धिंधिं",
+  TinTin:   "तिंतिं",
+  "Dhin —": "धिं  —",
+  "Na Dhin": "ना  धिं",
+  "S Dhin": "ऽ  धिं",
+  "Na —": "ना  —",
+  "Na  —": "ना  —",
+  "Na Tin": "ना  तिं",
+  "S Tin": "ऽ  तिं",
+
+  // Deepchandi's counted-but-unstruck matras. An en dash rather than a
+  // hyphen: it is read as a beat held, not as a missing bol.
+  "-":      "–"
 };
 
 function bolToDevanagari(bol) {
