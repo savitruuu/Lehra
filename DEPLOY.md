@@ -96,7 +96,7 @@ az containerapp up \
 
 2. **Decide on caching if you stop bumping `?v=`.** The one-day TTL on JS and
    CSS assumes the `?v=` stamps in `index.html` keep moving. They are at
-   `v=13.1` today. If a deploy ever ships without bumping them, browsers will
+   `v=13.2` today. If a deploy ever ships without bumping them, browsers will
    hold the old files for up to a day.
 
 ## Then, if you still want an APK

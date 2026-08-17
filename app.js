@@ -499,11 +499,12 @@ function applyTanpuraVolume(percent) {
   }
 }
 
-// The first string, as three buttons in the tanpura sheet. Pancham and Madhyam
-// are separate recordings of the real instrument (TANPURA_SAMPLES in audio.js);
-// Nishad has none and falls back to the synthesised drone, which is why
-// updateTanpuraSourceNote runs after every switch here - the one time the
-// engine changes what is actually sounding without a slider having moved.
+// The first string, as three buttons in the tanpura sheet. All three are
+// recordings now (TANPURA_SAMPLES in audio.js) - Nishad is the electronic
+// tanpura rather than the acoustic one Pancham and Madhyam use, since no
+// acoustic Sa-Ni recording could be found. updateTanpuraSourceNote still runs
+// after every switch: if a fetch ever fails at runtime, this is what tells the
+// player they are hearing the synthesised fallback instead.
 const TANPURA_STRINGS = [
   { id: "tanpura-string-pa", type: "pa" },
   { id: "tanpura-string-ma", type: "ma" },

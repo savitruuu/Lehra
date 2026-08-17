@@ -21,11 +21,11 @@
        anything that ignores rel="icon" with an SVG type - and apple-touch-icon
        is not a fallback at all: iOS reads only that tag when adding to the home
        screen, and only a PNG. -->
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=13.1">
-  <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=13.1">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=13.1">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=13.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=13.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=13.2">
 
-  <link rel="stylesheet" href="style.css?v=13.1">
+  <link rel="stylesheet" href="style.css?v=13.2">
 </head>
 <body class="dark-mode">
 
@@ -411,12 +411,11 @@
 
               <!-- First string. Pancham (Sa-Pa) is the standard tuning; Madhyam
                    (Sa-Ma) is what a singer wants for raags that drop Pa or lean
-                   on Ma - Malkauns, Bageshri, Lalit. Both are separate
-                   recordings of the real instrument, see TANPURA_SAMPLES in
-                   audio.js. Nishad (Sa-Ni), for Marwa, Puriya, Sohani and
-                   Poorvi, has no recording and falls back to the synthesised
-                   drone - see getFirstStringOffset in audio.js, which already
-                   carried the "ni" tuning with nothing in the UI to reach it.
+                   on Ma - Malkauns, Bageshri, Lalit. Nishad (Sa-Ni) is for
+                   Marwa, Puriya, Sohani and Poorvi. All three are recordings,
+                   see TANPURA_SAMPLES in audio.js - Nishad's is the electronic
+                   tanpura rather than the acoustic instrument the other two
+                   use, since no acoustic Sa-Ni recording could be found.
 
                    Accompaniment mode only (hidden by the stylesheet otherwise).
                    On the lehra player the raag is picked on screen and every
@@ -726,9 +725,18 @@
           <div>
             <h4 style="font-weight: 600; margin-bottom: 6px;">Credits</h4>
             <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
-              Tanpura recordings by <strong>Sankalp Gulati</strong>, recorded at Dhrupad Sansar,
-              IIT Bombay for the CompMusic project. Sourced from
+              Pancham and Madhyam tanpura recordings by <strong>Sankalp Gulati</strong>,
+              recorded at Dhrupad Sansar, IIT Bombay for the CompMusic project. Sourced from
               <a href="https://freesound.org/people/sankalp/packs/9571/" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">Freesound</a>
+              and used under the
+              <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
+                 style="color: var(--accent-cyan);">CC BY 4.0</a> licence.
+            </p>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-top: 10px;">
+              Nishad tanpura recording also by <strong>Sankalp Gulati</strong>, of an
+              electronic tanpura rather than the acoustic instrument above. Sourced from
+              <a href="https://freesound.org/people/sankalp/sounds/155495/" target="_blank" rel="noopener"
                  style="color: var(--accent-cyan);">Freesound</a>
               and used under the
               <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
@@ -811,13 +819,13 @@
     </button>
   </div>
 
-  <script src="taal_data.js?v=13.1"></script>
-  <script src="tanpura-dsp.js?v=13.1"></script>
+  <script src="taal_data.js?v=13.2"></script>
+  <script src="tanpura-dsp.js?v=13.2"></script>
   <!-- Must precede audio.js, which instantiates the engine on load. -->
-  <script src="instruments.js?v=13.1"></script>
-  <script src="tabla.js?v=13.1"></script>
-  <script src="audio.js?v=13.1"></script>
-  <script src="analytics.js?v=13.1"></script>
-  <script src="app.js?v=13.1"></script>
+  <script src="instruments.js?v=13.2"></script>
+  <script src="tabla.js?v=13.2"></script>
+  <script src="audio.js?v=13.2"></script>
+  <script src="analytics.js?v=13.2"></script>
+  <script src="app.js?v=13.2"></script>
 </body>
 </html>

@@ -6,14 +6,18 @@
 /**
  * TANPURA SAMPLES
  *
- * Recordings by Sankalp Gulati (CompMusic project), captured at Dhrupad Sansar,
- * IIT Bombay. Licensed CC BY 4.0 - see the credit line in the Settings screen.
+ * pa and ma are recordings by Sankalp Gulati (CompMusic project), captured on
+ * the acoustic tanpura at Dhrupad Sansar, IIT Bombay. ni is a separate
+ * recording by the same author, of an electronic tanpura (brand "Raagini")
+ * rather than the acoustic instrument - there was no acoustic Sa-Ni recording
+ * to be found from this source or any other, so it is a genuinely different
+ * timbre from the other two. All three are Freesound, CC BY 4.0 - see the
+ * credit line in the Settings screen.
  *
  * They differ in the tuning of the first string, which is raag-dependent:
  *   pa SA SA sa -> the standard tuning, used for most raags
  *   ma SA SA sa -> for raags where Ma dominates or Pa is absent (Malkauns, Bageshri, Lalit)
- * The Ni tuning (Marwa, Puriya, Sohani, Poorvi) has no recording available and
- * falls back to the synthesised engine below.
+ *   ni SA SA sa -> for raags built around the seventh, without Pa (Marwa, Puriya, Sohani, Poorvi)
  *
  * TONIC: the filenames say 233 Hz and the code trusted that, but the recordings
  * do not sit there. The playback rate is worked out as (target Sa / this
@@ -30,10 +34,16 @@
  * on. The two recordings agree to within half a cent. Treat it as accurate to
  * roughly +/- 2 cents; that is the instrument's own spread, not slack in the
  * measurement. Filenames left alone - only this figure is used.
+ *
+ * ni's 185 is Freesound's own stated figure for the electronic instrument's
+ * setting ("F#"), not an independently measured one - there was no way to
+ * verify it against the source the way pa/ma's 235.45 was. Treat it as
+ * nominal, good to the nearest few cents at best.
  */
 const TANPURA_SAMPLES = {
   pa: { url: "audio/tanpura-pa-233.mp3", sourceSaHz: 235.45 },
-  ma: { url: "audio/tanpura-ma-233.mp3", sourceSaHz: 235.45 }
+  ma: { url: "audio/tanpura-ma-233.mp3", sourceSaHz: 235.45 },
+  ni: { url: "audio/tanpura-ni-185.mp3", sourceSaHz: 185 }
 };
 
 /*
