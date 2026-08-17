@@ -2930,13 +2930,22 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
     color: var(--olive);
   }
 
-  /* Forest & Cream at night is the one palette where olive inverts to a pale
+  /* Forest & Cream at night is one palette where olive inverts to a pale
      sage, and on the dial that read as a green note rather than the brightest
      thing on the screen. White here, and only here: olive still marks the beat
-     number and the lehra's own level, and Moss & Sage wants its gold on all
-     three. */
+     number and the lehra's own level, and Moss & Sage's night keeps its gold
+     on all three. */
   body.dark-mode:not(.palette-moss) .scale-note {
     color: #FFFFFF;
+  }
+
+  /* Moss & Sage by day is the other exception: its --olive is the same amber
+     that marks the beat number and the lehra's own level there, and on the
+     dial that read as a muted gold rather than the sounding note standing out
+     against the paper. Black, and only for this one palette/theme pairing -
+     Moss & Sage's night wants the gold, same reasoning as above. */
+  body.palette-moss:not(.dark-mode) .scale-note {
+    color: #000000;
   }
 
   .scale-freq {
@@ -3425,10 +3434,10 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
     box-shadow: none;
   }
 
-  /* --- Tanpura first string (Sa-Pa / Sa-Ma) ---
-     A pair rather than a slider, because there are two tunings and no scale
-     between them. Label above the buttons, matching the sliders it sits with in
-     the sheet - those read label-then-control down the page too. */
+  /* --- Tanpura first string (Pancham / Madhyam / Nishad) ---
+     Three buttons rather than a slider, because these are named tunings and
+     not a scale between them. Label above the buttons, matching the sliders it
+     sits with in the sheet - those read label-then-control down the page too. */
   .tanpura-string-row {
     display: flex;
     flex-direction: column;

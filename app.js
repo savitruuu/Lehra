@@ -294,8 +294,9 @@ function initPlayerControls() {
   // Independent of the main play button - toggled only from its own button
   // here, so it can keep droning through a lehra pause or run on its own
   // while practising tabla without the lehra.
-  // Sa-Pa to start with, in both modes. Accompaniment mode can move it to Sa-Ma
-  // from the buttons in the tanpura sheet (see TANPURA_STRINGS below).
+  // Pancham (Sa-Pa) to start with, in both modes. Accompaniment mode can move
+  // it to Madhyam or Nishad from the buttons in the tanpura sheet (see
+  // TANPURA_STRINGS below).
   AudioEngine.tanpuraDroneType = "pa";
   AudioEngine.setTanpuraTempo(100 / parseInt(tanpuraSpeed.value));
 
@@ -498,13 +499,15 @@ function applyTanpuraVolume(percent) {
   }
 }
 
-// The first string, as a pair of buttons in the tanpura sheet. Only the two
-// tunings there are recordings of; the engine's third ('ni', for Marwa and
-// Puriya) falls back to the synth, and offering a button that quietly changes
-// which instrument you are hearing would be worse than not offering it.
+// The first string, as three buttons in the tanpura sheet. Pancham and Madhyam
+// are separate recordings of the real instrument (TANPURA_SAMPLES in audio.js);
+// Nishad has none and falls back to the synthesised drone, which is why
+// updateTanpuraSourceNote runs after every switch here - the one time the
+// engine changes what is actually sounding without a slider having moved.
 const TANPURA_STRINGS = [
   { id: "tanpura-string-pa", type: "pa" },
-  { id: "tanpura-string-ma", type: "ma" }
+  { id: "tanpura-string-ma", type: "ma" },
+  { id: "tanpura-string-ni", type: "ni" }
 ];
 
 function syncTanpuraStringButtons() {
@@ -1744,8 +1747,10 @@ function initMobileLayout() {
   if (scaleUp) scaleUp.addEventListener("click", () => stepScale(1));
   // Same anchored list as the tiles above, opened against #pitch-select
   // directly - a straight pick, alongside the arrows for a step at a time.
+  // toggleTilePicker, not openTilePicker: a second tap on the orb should close
+  // the list it just opened, the same as a second tap on any other tile.
   if (scaleOrb && pitchSelect) {
-    scaleOrb.addEventListener("click", () => openTilePicker(pitchSelect, scaleOrb));
+    scaleOrb.addEventListener("click", () => toggleTilePicker(pitchSelect, scaleOrb));
   }
   if (pitchSelect) pitchSelect.addEventListener("change", syncScaleDisplay);
 

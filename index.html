@@ -409,10 +409,14 @@
                 <input type="range" id="tanpura-speed" min="60" max="160" value="80" step="5">
               </div>
 
-              <!-- First string. Sa-Pa is the standard tuning; Sa-Ma is what a
-                   singer wants for raags that drop Pa or lean on Ma - Malkauns,
-                   Bageshri, Lalit. Both are separate recordings of the real
-                   instrument, see TANPURA_SAMPLES in audio.js.
+              <!-- First string. Pancham (Sa-Pa) is the standard tuning; Madhyam
+                   (Sa-Ma) is what a singer wants for raags that drop Pa or lean
+                   on Ma - Malkauns, Bageshri, Lalit. Both are separate
+                   recordings of the real instrument, see TANPURA_SAMPLES in
+                   audio.js. Nishad (Sa-Ni), for Marwa, Puriya, Sohani and
+                   Poorvi, has no recording and falls back to the synthesised
+                   drone - see getFirstStringOffset in audio.js, which already
+                   carried the "ni" tuning with nothing in the UI to reach it.
 
                    Accompaniment mode only (hidden by the stylesheet otherwise).
                    On the lehra player the raag is picked on screen and every
@@ -424,8 +428,9 @@
                 <span class="control-label">First String</span>
                 <div class="btn-group tanpura-string-group" role="group"
                      aria-label="Tanpura first string">
-                  <button class="btn" type="button" id="tanpura-string-pa" aria-pressed="true">Sa–Pa</button>
-                  <button class="btn" type="button" id="tanpura-string-ma" aria-pressed="false">Sa–Ma</button>
+                  <button class="btn" type="button" id="tanpura-string-pa" aria-pressed="true">Pancham</button>
+                  <button class="btn" type="button" id="tanpura-string-ma" aria-pressed="false">Madhyam</button>
+                  <button class="btn" type="button" id="tanpura-string-ni" aria-pressed="false">Nishad</button>
                 </div>
               </div>
             </div>
