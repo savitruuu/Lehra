@@ -2268,8 +2268,11 @@ input:checked + .slider-switch:before {
   /* The beat tracker, full screen, after 30s of uninterrupted playing.
      Same element as the desktop tracker, moved in here - so the matra number,
      the bol and the vibhaag markers all keep working untouched. */
-  /* A column of three: avartan counter, the ring, the reset button. The ring
-     takes whatever is left, so the two ends are the only fixed cost. */
+  /* A column of three: avartan counter, the ring, the reset button - held as
+     one tight, centred cluster rather than spread to the screen's edges,
+     which is what letting the ring flex-grow to fill all leftover space used
+     to do. The ring is capped to a sensible size instead (see
+     .visual-tracker-container below) and gap holds the three together. */
   .screensaver {
     display: flex;
     flex-direction: column;
@@ -2278,6 +2281,7 @@ input:checked + .slider-switch:before {
     z-index: 400;
     align-items: center;
     justify-content: center;
+    gap: clamp(10px, 3vh, 20px);
     /* Small: the ring is drawn to fit whatever box it gets, so every pixel of
        padding here comes straight off its diameter. */
     padding: 10px;
@@ -2300,11 +2304,14 @@ input:checked + .slider-switch:before {
   .screensaver .screensaver-reset-btn { order: 3; }
 
   .screensaver .visual-tracker-container {
+    /* Sized off itself, not grown to fill whatever the counter and button
+       leave over - that was what put daylight between the ring and both of
+       them. Square, and capped so a wide or short viewport doesn't blow the
+       ring out to something the counter and button then sit far away from. */
     width: 100%;
-    /* Auto height rather than 100%: it now shares the column with the counter
-       and the button, and 100% of the screensaver would push both off it. */
-    flex: 1 1 auto;
-    height: auto;
+    max-width: min(80vh, 480px);
+    aspect-ratio: 1;
+    flex: 0 1 auto;
     min-height: 0;
     padding: 0;
     background: transparent;
@@ -2320,7 +2327,6 @@ input:checked + .slider-switch:before {
     align-items: baseline;
     gap: 10px;
     flex: 0 0 auto;
-    padding: 4px 0 10px;
   }
 
   .screensaver-avartan-label {
@@ -2347,7 +2353,6 @@ input:checked + .slider-switch:before {
   .screensaver-reset-btn {
     display: block;
     flex: 0 0 auto;
-    margin-top: 12px;
     padding: 12px 26px;
     min-height: 44px;
     border: 1px solid var(--panel-border);
