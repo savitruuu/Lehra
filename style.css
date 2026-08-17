@@ -2454,6 +2454,20 @@ body:not(.tabla-mode) #tanpura-string-row {
   display: none;
 }
 
+/* Same reasoning for the name beside the Tanpura heading: it reads the
+   picker above, so it is furniture from a control that is not there outside
+   accompaniment mode. */
+body:not(.tabla-mode) #tanpura-heading-string {
+  display: none;
+}
+
+/* Lighter than the heading it sits beside - a detail on the name, not part
+   of it. */
+.tanpura-heading-string {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
 /* Instrument is hidden above it here, not removed, so the dotted rule the
    parchment block puts between the picker rows (#picker-section > * + *) still
    landed on Taal - a divider drawn against the top edge of the card with nothing
