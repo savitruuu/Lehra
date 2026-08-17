@@ -512,18 +512,12 @@ const TANPURA_STRINGS = [
 ];
 
 function syncTanpuraStringButtons() {
-  const label = document.getElementById("tanpura-heading-string");
-
   TANPURA_STRINGS.forEach(cfg => {
     const btn = document.getElementById(cfg.id);
     if (!btn) return;
     const on = AudioEngine.tanpuraDroneType === cfg.type;
     btn.classList.toggle("active", on);
     btn.setAttribute("aria-pressed", on ? "true" : "false");
-
-    // Read off the button rather than a second name lookup, so the heading
-    // can never drift from what the picker itself says.
-    if (on && label) label.textContent = btn.textContent;
   });
 }
 
