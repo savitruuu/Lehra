@@ -2268,8 +2268,11 @@ input:checked + .slider-switch:before {
   /* The beat tracker, full screen, after 30s of uninterrupted playing.
      Same element as the desktop tracker, moved in here - so the matra number,
      the bol and the vibhaag markers all keep working untouched. */
+  /* A column of three: avartan counter, the ring, the reset button. The ring
+     takes whatever is left, so the two ends are the only fixed cost. */
   .screensaver {
     display: flex;
+    flex-direction: column;
     position: fixed;
     inset: 0;
     z-index: 400;
@@ -2278,6 +2281,7 @@ input:checked + .slider-switch:before {
     /* Small: the ring is drawn to fit whatever box it gets, so every pixel of
        padding here comes straight off its diameter. */
     padding: 10px;
+    padding-bottom: calc(10px + var(--safe-bottom));
     background: var(--bg-primary);
     opacity: 0;
     visibility: hidden;
@@ -2289,14 +2293,77 @@ input:checked + .slider-switch:before {
     visibility: visible;
   }
 
+  /* Order, not DOM order - app.js appends the tracker into this element, so it
+     always arrives last however the markup is written. */
+  .screensaver .screensaver-avartan { order: 1; }
+  .screensaver .visual-tracker-container { order: 2; }
+  .screensaver .screensaver-reset-btn { order: 3; }
+
   .screensaver .visual-tracker-container {
     width: 100%;
-    height: 100%;
+    /* Auto height rather than 100%: it now shares the column with the counter
+       and the button, and 100% of the screensaver would push both off it. */
+    flex: 1 1 auto;
+    height: auto;
     min-height: 0;
     padding: 0;
     background: transparent;
     border: 0;
     box-shadow: none;
+  }
+
+  /* Counter above the ring. The label is set small and quiet so the figure
+     itself is what carries across a room, the same way the matra number does
+     inside the ring. */
+  .screensaver-avartan {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex: 0 0 auto;
+    padding: 4px 0 10px;
+  }
+
+  .screensaver-avartan-label {
+    font-size: clamp(11px, min(3.2vw, 3.2vh), 15px);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .screensaver-avartan-count {
+    font-family: var(--font-ui);
+    font-size: clamp(22px, min(7vw, 7vh), 40px);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+
+  /* Reset button under the ring. Deliberately understated - it is a housekeeping
+     control sitting on a screen whose whole point is that nothing competes with
+     the beat - but sized to the 44px tap target, since it has to be hit without
+     dismissing the screensaver around it. */
+  .screensaver-reset-btn {
+    display: block;
+    flex: 0 0 auto;
+    margin-top: 12px;
+    padding: 12px 26px;
+    min-height: 44px;
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    background: var(--panel-bg);
+    color: var(--text-secondary);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+  }
+
+  .screensaver-reset-btn:active {
+    background: var(--accent-cyan-glow);
+    color: var(--text-primary);
   }
 
   .screensaver .beat-number {
@@ -2358,41 +2425,6 @@ input:checked + .slider-switch:before {
    tablaModeActive in app.js).
    ========================================================================= */
 
-.tabla-mode-bar {
-  display: none;
-}
-
-body.tabla-mode .tabla-mode-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.tabla-mode-bar h4 {
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.tabla-mode-back {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid var(--panel-border);
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.tabla-mode-back svg {
-  width: 20px;
-  height: 20px;
-}
-
 /* The lehra and everything that only serves it - the raag and instrument it is
    played on, its status line, its own level. The tabla's
    own play button goes too: in this mode the main play button below is the
@@ -2406,15 +2438,29 @@ body.tabla-mode #lehra-volume-slot,
 body.tabla-mode .transport-status,
 body.tabla-mode #tabla-play-btn,
 /* Emptied by the relocation above - its contents are in the left column now. */
-body.tabla-mode #mixer-cell-tabla,
-/* Nothing left to open: the sheet behind it exists to offer this very mode. */
-body.tabla-mode #tabla-heading .mix-settings-chevron {
+body.tabla-mode #mixer-cell-tabla {
   display: none;
 }
 
 /* The slot that receives them, which is furniture on the lehra player. */
 body:not(.tabla-mode) #mixer-cell-tabla-left {
   display: none;
+}
+
+/* The first-string choice is an accompaniment-mode control - see the note on it
+   in index.html. app.js puts the tuning back to Sa-Pa on the way out, so the
+   drone is never left on a tuning with no control on screen to change it. */
+body:not(.tabla-mode) #tanpura-string-row {
+  display: none;
+}
+
+/* Instrument is hidden above it here, not removed, so the dotted rule the
+   parchment block puts between the picker rows (#picker-section > * + *) still
+   landed on Taal - a divider drawn against the top edge of the card with nothing
+   on the other side of it. Taal is the first row in this mode, so it gets no
+   rule, the same as Instrument does in the lehra player. */
+body.tabla-mode #picker-section > #tile-taal {
+  border-top: 0;
 }
 
 body.tabla-mode #tabla-heading {
@@ -2427,13 +2473,6 @@ body.tabla-mode #tabla-heading {
 body.tabla-mode .mixer-cell #tabla-play-btn {
   display: block;
   visibility: hidden;
-}
-
-/* The sheet is otherwise all mix controls, so its one button gets room of its
-   own. Full width: it is the only thing to press in there. */
-.tabla-accompaniment-btn {
-  width: 100%;
-  justify-content: center;
 }
 
 
@@ -2889,6 +2928,15 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
     background: none;
     -webkit-text-fill-color: currentColor;
     color: var(--olive);
+  }
+
+  /* Forest & Cream at night is the one palette where olive inverts to a pale
+     sage, and on the dial that read as a green note rather than the brightest
+     thing on the screen. White here, and only here: olive still marks the beat
+     number and the lehra's own level, and Moss & Sage wants its gold on all
+     three. */
+  body.dark-mode:not(.palette-moss) .scale-note {
+    color: #FFFFFF;
   }
 
   .scale-freq {
@@ -3377,6 +3425,42 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
     box-shadow: none;
   }
 
+  /* --- Tanpura first string (Sa-Pa / Sa-Ma) ---
+     A pair rather than a slider, because there are two tunings and no scale
+     between them. Label above the buttons, matching the sliders it sits with in
+     the sheet - those read label-then-control down the page too. */
+  .tanpura-string-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tanpura-string-group {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .tanpura-string-group .btn {
+    flex: 1;
+    min-width: 0;
+    min-height: 46px;
+    padding: 12px 4px;
+    border-radius: 14px;
+    background: var(--btn-face);
+    border: 1px solid var(--line);
+    color: var(--text-primary);
+    font-size: clamp(13px, 3.8vw, 16px);
+    font-weight: 600;
+    justify-content: center;
+  }
+
+  .tanpura-string-group .btn.active {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+    color: #FCFAF6;
+    box-shadow: none;
+  }
+
   /* --- Bottom rule ---
      A single repeated floral unit along the very bottom of the player, the last
      of the three ornaments. Fixed rather than in flow, and beneath every overlay
@@ -3466,6 +3550,17 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
     background-color: var(--paper);
   }
 
+  .screensaver-reset-btn {
+    border-color: var(--line);
+    background: var(--card);
+    color: var(--terracotta);
+  }
+
+  .screensaver-reset-btn:active {
+    background: var(--terracotta-wash);
+    color: var(--terracotta);
+  }
+
   /* Same reasoning as the sounding note: the clipped white-to-accent gradient
      that reads well on a dark panel is close to invisible on paper.
 
@@ -3539,6 +3634,7 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
     font-weight: 600;
     color: var(--terracotta);
   }
+
 
   .stat-val {
     font-weight: 600;

@@ -21,13 +21,13 @@
        anything that ignores rel="icon" with an SVG type - and apple-touch-icon
        is not a fallback at all: iOS reads only that tag when adding to the home
        screen, and only a PNG. -->
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=13.0">
-  <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=13.0">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=13.0">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=13.1">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=13.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=13.1">
 
-  <link rel="stylesheet" href="style.css?v=13.0">
+  <link rel="stylesheet" href="style.css?v=13.1">
 </head>
-<body>
+<body class="dark-mode">
 
   <div class="app-container">
 
@@ -52,7 +52,16 @@
           <ul class="nav-menu">
             <li class="nav-item active" data-target="player-screen" id="nav-player">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-              <span>Practice Player</span>
+              <span>Lehra</span>
+            </li>
+            <!-- Same screen as Lehra above (both target player-screen) - this is
+                 the direct way into Tabla Accompaniment, the stripped-down player
+                 for a singer who wants only the theka behind them. See
+                 initNavigation in app.js, which is what tells the two apart and
+                 flips body.tabla-mode to match whichever was clicked. -->
+            <li class="nav-item" data-target="player-screen" id="nav-tabla">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12C20,14.4 18.9,16.5 17.2,18H6.8C5.1,16.5 4,14.4 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" /></svg>
+              <span>Tabla</span>
             </li>
             <li class="nav-item" data-target="analytics-screen" id="nav-analytics">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
@@ -105,14 +114,8 @@
              while body.tabla-mode is set - the same screen rather than a second
              copy of it, so the scale dial, the taal picker and the tempo row
              are the very same controls, in the same places, and nothing has to
-             be kept in step with anything. This bar is the only new furniture
-             and the only way back. -->
-        <div class="tabla-mode-bar" id="tabla-mode-bar">
-          <button class="tabla-mode-back" id="tabla-mode-back" aria-label="Back to the lehra player">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-          </button>
-          <h4>Tabla Accompaniment</h4>
-        </div>
+             be kept in step with anything. The drawer's Lehra item is the way
+             out - see initNavigation in app.js. -->
 
         <!-- Phone-only scale header: the current scale as a dial, with the two
              arrows stepping it a semitone at a time. It drives the same
@@ -388,11 +391,6 @@
                 <h4 id="tanpura-heading">Tanpura <svg class="mix-settings-chevron" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></h4>
               </div>
 
-              <!-- The first string is Sa-Pa, always. Sa-Ma is the tuning for
-                   raags that omit Pa, which is a decision about the raag rather
-                   than about the drone - and every raag this app ships a lehra
-                   for keeps its Pa. The choice was a control that existed to be
-                   left alone. -->
               <p style="font-size: 11px; color: var(--text-muted);" id="tanpura-source-note"></p>
 
               <div class="slider-container" id="tanpura-volume-block">
@@ -409,6 +407,26 @@
                   <span class="slider-val" id="tanpura-speed-val">80%</span>
                 </div>
                 <input type="range" id="tanpura-speed" min="60" max="160" value="80" step="5">
+              </div>
+
+              <!-- First string. Sa-Pa is the standard tuning; Sa-Ma is what a
+                   singer wants for raags that drop Pa or lean on Ma - Malkauns,
+                   Bageshri, Lalit. Both are separate recordings of the real
+                   instrument, see TANPURA_SAMPLES in audio.js.
+
+                   Accompaniment mode only (hidden by the stylesheet otherwise).
+                   On the lehra player the raag is picked on screen and every
+                   lehra this app ships keeps its Pa, so the choice would be a
+                   control that exists to be left alone; in accompaniment mode
+                   there is no raag on screen at all and what the singer is
+                   singing is the only thing that decides it. -->
+              <div class="tanpura-string-row" id="tanpura-string-row">
+                <span class="control-label">First String</span>
+                <div class="btn-group tanpura-string-group" role="group"
+                     aria-label="Tanpura first string">
+                  <button class="btn" type="button" id="tanpura-string-pa" aria-pressed="true">Sa–Pa</button>
+                  <button class="btn" type="button" id="tanpura-string-ma" aria-pressed="false">Sa–Ma</button>
+                </div>
               </div>
             </div>
 
@@ -458,9 +476,11 @@
                 <button class="btn btn-round mix-play-btn" id="tabla-play-btn" aria-label="Play Tabla">
                   <svg id="tabla-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </button>
-                <!-- Same chevron as Tanpura's, opening sheet-tabla - which
-                     holds the one control below that is not about the mix. -->
-                <h4 id="tabla-heading">Tabla <svg class="mix-settings-chevron" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></h4>
+                <!-- No chevron, unlike Tanpura's - tapping still opens
+                     sheet-tabla for its Volume slider, just without the arrow
+                     that used to point toward accompaniment mode. That's the
+                     drawer's Tabla item now (see initNavigation in app.js). -->
+                <h4 id="tabla-heading">Tabla</h4>
               </div>
 
               <div class="slider-container" id="tabla-volume-block">
@@ -473,12 +493,6 @@
                 <input type="range" id="tabla-volume" min="0" max="100" value="70">
                 <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;" id="tabla-source-note"></p>
               </div>
-
-              <!-- The way into tabla accompaniment: the same player stripped to
-                   what a singer needs behind a tabla - see enterTablaMode in
-                   app.js, which stops everything first so the switch is silent.
-                   Hidden once you are already in there. -->
-              <button class="btn tabla-accompaniment-btn" id="tabla-accompaniment-btn">Tabla Accompaniment</button>
             </div>
           </div>
         </div>
@@ -769,16 +783,36 @@
   <!-- Screensaver. The avartan chakra is moved in here on phones, where the
        single-screen layout has no room for it, and takes over the display after
        30s of uninterrupted playing (SCREENSAVER_DELAY_MS in app.js). Tap
-       anywhere to come back. -->
-  <div class="screensaver" id="screensaver"></div>
+       anywhere to come back.
 
-  <script src="taal_data.js?v=13.0"></script>
-  <script src="tanpura-dsp.js?v=13.0"></script>
+       The chakra is appended here by app.js, so it lands after both children
+       below; the column order is set in the stylesheet instead, which is what
+       puts the counter above the ring and the reset button under it. -->
+  <div class="screensaver" id="screensaver">
+    <!-- Avartan counter: how many cycles have turned since the transport
+         started. Outside the ring rather than in it - the centre already holds
+         the matra, the bol and the two readouts, and this is a running total
+         rather than part of the pulse. -->
+    <div class="screensaver-avartan">
+      <span class="screensaver-avartan-label">Avartan</span>
+      <span class="screensaver-avartan-count" id="screensaver-avartan">0</span>
+    </div>
+
+    <!-- Sets the session clock back to 0:00 without stopping anything. The one
+         control inside the screensaver that is meant to be tapped rather than
+         tapped through, so app.js exempts it from the dismiss-on-touch. -->
+    <button class="screensaver-reset-btn" id="screensaver-reset" type="button">
+      Reset timer
+    </button>
+  </div>
+
+  <script src="taal_data.js?v=13.1"></script>
+  <script src="tanpura-dsp.js?v=13.1"></script>
   <!-- Must precede audio.js, which instantiates the engine on load. -->
-  <script src="instruments.js?v=13.0"></script>
-  <script src="tabla.js?v=13.0"></script>
-  <script src="audio.js?v=13.0"></script>
-  <script src="analytics.js?v=13.0"></script>
-  <script src="app.js?v=13.0"></script>
+  <script src="instruments.js?v=13.1"></script>
+  <script src="tabla.js?v=13.1"></script>
+  <script src="audio.js?v=13.1"></script>
+  <script src="analytics.js?v=13.1"></script>
+  <script src="app.js?v=13.1"></script>
 </body>
 </html>

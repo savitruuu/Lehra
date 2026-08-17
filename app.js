@@ -86,14 +86,17 @@ function initNavigation() {
     item.addEventListener("click", () => {
       const targetScreenId = item.getAttribute("data-target");
 
-      // Update active nav state
-      navItems.forEach(i => {
-        if (i.getAttribute("data-target") === targetScreenId) {
-          i.classList.add("active");
-        } else {
-          i.classList.remove("active");
-        }
-      });
+      // Update active nav state. By identity, not by matching data-target - the
+      // Lehra and Tabla items both target player-screen, and lighting up
+      // whichever one was actually clicked is the only way to keep them apart.
+      navItems.forEach(i => i.classList.toggle("active", i === item));
+
+      // Lehra and Tabla are one screen with two doors: whichever one was
+      // clicked decides which side of it is showing. Any other nav item leaves
+      // tabla mode exactly as it was - there is no third state to reconcile it
+      // with.
+      if (item.id === "nav-player") setTablaMode(false);
+      else if (item.id === "nav-tabla") setTablaMode(true);
 
       // The player is the one screen pinned to a single viewport; the rest
       // still scroll, so the stylesheet needs to know which is showing.
@@ -291,9 +294,8 @@ function initPlayerControls() {
   // Independent of the main play button - toggled only from its own button
   // here, so it can keep droning through a lehra pause or run on its own
   // while practising tabla without the lehra.
-  // Sa-Pa, fixed. The Sa-Ma tuning is for raags that drop Pa, and none of the
-  // lehras this app ships do - so the choice was a control that existed to be
-  // left alone. The engine still supports both; nothing but this line picks.
+  // Sa-Pa to start with, in both modes. Accompaniment mode can move it to Sa-Ma
+  // from the buttons in the tanpura sheet (see TANPURA_STRINGS below).
   AudioEngine.tanpuraDroneType = "pa";
   AudioEngine.setTanpuraTempo(100 / parseInt(tanpuraSpeed.value));
 
@@ -307,6 +309,30 @@ function initPlayerControls() {
     syncTanpuraButton();
     updateTanpuraSourceNote();
   });
+
+  TANPURA_STRINGS.forEach(cfg => {
+    const btn = document.getElementById(cfg.id);
+    if (!btn) return;
+
+    btn.addEventListener("click", async () => {
+      if (AudioEngine.tanpuraDroneType === cfg.type) return;
+
+      // Marked before the await, not after: setTanpuraType restarts a running
+      // drone, which means loading and stretching the other recording, and the
+      // buttons should show what was pressed straight away rather than after it.
+      AudioEngine.tanpuraDroneType = cfg.type;
+      syncTanpuraStringButtons();
+
+      await AudioEngine.setTanpuraType(cfg.type);
+
+      // A restart builds the drone again from the sample, so its level is
+      // reapplied here the same way the play button does it.
+      if (AudioEngine.tanpuraPlaying) applyTanpuraVolume(tanpuraVol.value);
+      updateTanpuraSourceNote();
+    });
+  });
+
+  syncTanpuraStringButtons();
 
   // --- Metronome click ---
   // Independent of both the Lehra play button and the Tanpura button - it can
@@ -472,6 +498,25 @@ function applyTanpuraVolume(percent) {
   }
 }
 
+// The first string, as a pair of buttons in the tanpura sheet. Only the two
+// tunings there are recordings of; the engine's third ('ni', for Marwa and
+// Puriya) falls back to the synth, and offering a button that quietly changes
+// which instrument you are hearing would be worse than not offering it.
+const TANPURA_STRINGS = [
+  { id: "tanpura-string-pa", type: "pa" },
+  { id: "tanpura-string-ma", type: "ma" }
+];
+
+function syncTanpuraStringButtons() {
+  TANPURA_STRINGS.forEach(cfg => {
+    const btn = document.getElementById(cfg.id);
+    if (!btn) return;
+    const on = AudioEngine.tanpuraDroneType === cfg.type;
+    btn.classList.toggle("active", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
 // Keeps the mixer's tanpura button showing the true engine state, whether it was
 // started from that button or carried along by the main play button.
 function syncTanpuraButton() {
@@ -607,6 +652,13 @@ function setTablaMode(on) {
       taalSelect.value = "teentaal";
       taalSelect.dispatchEvent(new Event("change", { bubbles: true }));
     }
+
+    // Same reasoning for the drone's first string: its buttons live in the
+    // tanpura sheet and are hidden outside accompaniment mode, so a Sa-Ma left
+    // behind would be a tuning in effect with nothing on screen to change it.
+    // Safe to set directly - stopAllTransports above has already silenced it.
+    AudioEngine.tanpuraDroneType = "pa";
+    syncTanpuraStringButtons();
   }
 
   // The tabla's controls have a different home in this mode - see the third
@@ -720,7 +772,20 @@ function startPracticeTimer() {
 
 function stopPracticeTimer() {
   clearInterval(practiceTimerInterval);
+  bankPracticeSeconds();
+  syncScreensaverReadout();
+}
 
+/**
+ * Writes what the clock has counted so far to the practice log and zeroes it.
+ *
+ * Split out of stopPracticeTimer because the Reset button in the screensaver
+ * needs the same thing without stopping the transport: the count is the source
+ * the Analytics screen reads, so resetting the readout has to bank the stretch
+ * it is throwing away rather than lose that practice time. The log is
+ * append-only, so a reset mid-session simply lands as two entries.
+ */
+function bankPracticeSeconds() {
   // Anything under five seconds is a mis-tap, not a session.
   if (practiceSeconds > 5) {
     savePracticeSession(
@@ -732,6 +797,17 @@ function stopPracticeTimer() {
   }
 
   practiceSeconds = 0;
+}
+
+/**
+ * The Reset button under the ring: sets the session clock back to 0:00 and
+ * starts the avartan count again from where the player is now, without touching
+ * the transport. For the common case of leaving the lehra running between two
+ * stretches of riyaaz, which otherwise reads as one long session.
+ */
+function resetScreensaverTimer() {
+  bankPracticeSeconds();
+  resetAvartanCount();
   syncScreensaverReadout();
 }
 
@@ -753,6 +829,42 @@ function syncScreensaverReadout() {
     const secs = practiceSeconds % 60;
     time.textContent = mins + ":" + String(secs).padStart(2, "0");
   }
+}
+
+// --- Avartan count ---
+//
+// Completed cycles, counted off Sam. Sits above the ring rather than in it: the
+// centre reads the position inside one avartan, and this reads how many have
+// gone by - the number a player refers to when they want "another ten cycles of
+// this" rather than a length in minutes.
+//
+// Zeroed whenever the transport starts from a standstill, which is also when the
+// scheduler restarts at matra 0 (see _ensureSchedulerRunning in audio.js), so
+// the count and the matra clock always begin together. Adding the tabla or the
+// click to something already running leaves it alone.
+// Counted off Sams rather than incremented directly: the first Sam of a run
+// opens the first cycle instead of completing one, so completed avartans are
+// always one behind the Sams seen. That also makes the reading during the first
+// cycle 0 rather than 1, which is what "cycles so far" should say.
+let avartanSams = 0;
+let avartanCount = 0;
+
+function resetAvartanCount() {
+  avartanSams = 0;
+  avartanCount = 0;
+  syncAvartanCount();
+}
+
+/** Called on every Sam, from handleOnBeat. */
+function countAvartanSam() {
+  avartanSams++;
+  avartanCount = Math.max(0, avartanSams - 1);
+  syncAvartanCount();
+}
+
+function syncAvartanCount() {
+  const el = document.getElementById("screensaver-avartan");
+  if (el) el.textContent = avartanCount;
 }
 
 /**
@@ -805,6 +917,9 @@ function handleOnBeat(matraIndex) {
     const samGlow = document.getElementById("sam-glow");
     samGlow.classList.add("active");
     setTimeout(() => samGlow.classList.remove("active"), 300);
+
+    // Sam is also where the avartan count ticks over.
+    countAvartanSam();
   }
 
   // Only the tabla bol here. Sam, tali and khali are already carried by the
@@ -1230,6 +1345,9 @@ function syncTileValues() {
  */
 let _tilePickerPanel = null;
 let _tilePickerSelect = null;
+// The tile the open panel is anchored to, so a tap on it can be told apart from
+// a tap somewhere else on the screen - see toggleTilePicker.
+let _tilePickerTile = null;
 
 function ensureTilePickerPanel() {
   if (_tilePickerPanel) return _tilePickerPanel;
@@ -1244,11 +1362,27 @@ function ensureTilePickerPanel() {
 function closeTilePicker() {
   if (_tilePickerPanel) _tilePickerPanel.classList.remove("open");
   _tilePickerSelect = null;
+  _tilePickerTile = null;
+}
+
+/**
+ * What a tap on a tile does: opens its list, or shuts it again if that same list
+ * is already open.
+ *
+ * The tile is the button for its own dropdown, so it has to work both ways -
+ * tapping it a second time to back out without choosing anything is the obvious
+ * way to dismiss the list, and until this existed it closed and reopened
+ * instead, which read as the list refusing to go away.
+ */
+function toggleTilePicker(select, tile) {
+  if (_tilePickerSelect === select) closeTilePicker();
+  else openTilePicker(select, tile);
 }
 
 function openTilePicker(select, tile) {
   const panel = ensureTilePickerPanel();
   _tilePickerSelect = select;
+  _tilePickerTile = tile;
   panel.innerHTML = "";
 
   Array.from(select.options).forEach(opt => {
@@ -1324,6 +1458,7 @@ function openTilePicker(select, tile) {
 
 const SCREENSAVER_DELAY_MS = 30000;
 let screensaverTimer = null;
+let _transportWasRunning = false;
 
 /**
  * True when the avartan chakra is actually on screen.
@@ -1352,6 +1487,14 @@ function hideScreensaver() {
  * while a slider is still being dragged.
  */
 function noteActivity() {
+  // Every transport change routes through here (the sync*Button helpers all call
+  // it), which makes it the one place that sees the standstill -> running edge -
+  // the same moment the scheduler restarts at matra 0. Cheap to check on the
+  // touch and key calls too, since only that edge does anything.
+  const running = transportIsRunning();
+  if (running && !_transportWasRunning) resetAvartanCount();
+  _transportWasRunning = running;
+
   clearTimeout(screensaverTimer);
   screensaverTimer = null;
   hideScreensaver();
@@ -1519,7 +1662,7 @@ function initMobileLayout() {
     if (label) registerRelocation(label, tile);
     registerRelocation(select, tile);
     select.addEventListener("change", syncTileValues);
-    tile.addEventListener("click", () => openTilePicker(select, tile));
+    tile.addEventListener("click", () => toggleTilePicker(select, tile));
   });
 
   registerRelocation(document.getElementById("fine-tune-row"), heroWrap);
@@ -1578,25 +1721,15 @@ function initMobileLayout() {
   const tanpuraHeading = document.getElementById("tanpura-heading");
   if (tanpuraHeading) tanpuraHeading.addEventListener("click", () => openSheet("sheet-tanpura"));
 
-  // Tabla's heading opens its own sheet the same way. On phones the volume has
-  // moved out to the mini mixer, so what is left behind the chevron is the way
-  // into accompaniment mode.
-  // ...except once you are inside accompaniment mode, where the sheet's only
-  // contents are the level already on screen and the button that got you here.
+  // Tabla's heading opens its own sheet the same way, for its volume - the way
+  // into accompaniment mode itself is the Tabla item in the drawer now (see
+  // initNavigation), not this sheet.
   const tablaHeading = document.getElementById("tabla-heading");
   if (tablaHeading) {
     tablaHeading.addEventListener("click", () => {
       if (!tablaModeActive) openSheet("sheet-tabla");
     });
   }
-
-  const tablaAccompanimentBtn = document.getElementById("tabla-accompaniment-btn");
-  if (tablaAccompanimentBtn) {
-    tablaAccompanimentBtn.addEventListener("click", () => setTablaMode(true));
-  }
-
-  const tablaModeBack = document.getElementById("tabla-mode-back");
-  if (tablaModeBack) tablaModeBack.addEventListener("click", () => setTablaMode(false));
 
   document.querySelectorAll(".mix-sheet .sheet-handle").forEach(handle => {
     handle.addEventListener("click", closeOverlays);
@@ -1638,10 +1771,27 @@ function initMobileLayout() {
   if (fineMinus) fineMinus.addEventListener("click", () => stepFineTune(-1));
   if (finePlus) finePlus.addEventListener("click", () => stepFineTune(1));
 
+  const resetBtn = document.getElementById("screensaver-reset");
+  if (resetBtn) {
+    // The screensaver deliberately stays up: the pointerdown handler below
+    // exempts this button from the dismiss-on-touch, so a reset leaves the
+    // player looking at a ring that is still turning.
+    resetBtn.addEventListener("click", resetScreensaverTimer);
+  }
+
   // Any touch or key postpones the screensaver; a touch while it is showing
   // dismisses it. Capture phase so it is seen before anything swallows it.
   document.addEventListener("pointerdown", (e) => {
     const screensaverActive = trackerIsOnScreen();
+
+    // The Reset button is the exception: it lives inside the screensaver and is
+    // meant to be pressed there, so let its click through and leave the graphic
+    // up. Swallowing this the way every other touch is swallowed would mean the
+    // button could never be reached - the first tap would only dismiss.
+    if (screensaverActive && e.target.closest && e.target.closest("#screensaver-reset")) {
+      return;
+    }
+
     noteActivity();
     if (screensaverActive) {
       e.stopPropagation();
@@ -1657,6 +1807,14 @@ function initMobileLayout() {
   document.addEventListener("pointerdown", (e) => {
     if (!_tilePickerSelect) return;
     if (_tilePickerPanel && _tilePickerPanel.contains(e.target)) return;
+
+    // A tap on the tile the open picker belongs to is left alone here and
+    // handled by that tile's own click listener, which toggles it shut. Treating
+    // it as an outside tap and closing it from here would have the click that
+    // follows reopen it a moment later - which is what made tapping the tile a
+    // second time look like it did nothing.
+    if (_tilePickerTile && _tilePickerTile.contains(e.target)) return;
+
     closeTilePicker();
   }, true);
 
@@ -1753,15 +1911,16 @@ function loadSettingsDefaults() {
   try {
     const config = JSON.parse(configStr);
 
-    if (config.theme === "dark") {
-      document.body.classList.add("dark-mode");
-      document.getElementById("settings-theme-toggle").checked = true;
-    }
+    // Both branches, not just the "on" one: the body ships with dark-mode
+    // already in the markup (see index.html), so a saved theme of "light" has
+    // to actively remove it rather than simply not add it.
+    const dark = config.theme === "dark";
+    document.body.classList.toggle("dark-mode", dark);
+    document.getElementById("settings-theme-toggle").checked = dark;
 
-    if (config.palette === "moss") {
-      document.body.classList.add("palette-moss");
-      document.getElementById("settings-palette-select").value = "moss";
-    }
+    const moss = config.palette === "moss";
+    document.body.classList.toggle("palette-moss", moss);
+    document.getElementById("settings-palette-select").value = moss ? "moss" : "default";
 
     // Set player defaults
     if (config.taal) {
@@ -1815,11 +1974,11 @@ function initSettingsTilePickers() {
 
     syncSettingsTileValue(select, tile);
     select.addEventListener("change", () => syncSettingsTileValue(select, tile));
-    tile.addEventListener("click", () => openTilePicker(select, tile));
+    tile.addEventListener("click", () => toggleTilePicker(select, tile));
     tile.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        openTilePicker(select, tile);
+        toggleTilePicker(select, tile);
       }
     });
   });
@@ -1834,7 +1993,7 @@ function populateTaalGlossary() {
     const taal = TAAL_DATA[key];
     const card = document.createElement("div");
     card.classList.add("glass-panel", "taal-info-card");
-    
+
     // Tali/Khali formatting
     const taliStr = taal.tali_positions.join(", ");
     const khaliStr = taal.khali_positions.join(", ");
