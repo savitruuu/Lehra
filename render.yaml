@@ -53,6 +53,15 @@ services:
         name: Cache-Control
         value: no-cache
 
+      # Render infers Content-Type from the extension and has no entry for
+      # .webmanifest, which is why the manifest is named .json - a manifest
+      # served as binary/octet-stream can be rejected outright, and the only
+      # symptom is the browser quietly offering a shortcut instead of an
+      # install.
+      - path: /manifest.json
+        name: Cache-Control
+        value: no-cache
+
       - path: /*
         name: X-Content-Type-Options
         value: nosniff

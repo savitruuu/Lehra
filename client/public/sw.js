@@ -97,7 +97,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (url.pathname.startsWith("/assets/") || /\.(png|svg|webmanifest)$/.test(url.pathname)) {
+  if (url.pathname.startsWith("/assets/") || /\.(png|svg|json)$/.test(url.pathname)) {
     event.respondWith(cacheFirst(request, ASSET_CACHE));
   }
 });
