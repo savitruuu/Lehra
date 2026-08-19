@@ -7,7 +7,6 @@ import { AuthProvider } from "./auth/AuthContext.jsx";
 import { Drawer, MobileHeader, MobileNav } from "./components/Navigation.jsx";
 import { TilePicker } from "./components/TilePicker.jsx";
 import { Screensaver } from "./components/Screensaver.jsx";
-import { ExitPrompt } from "./components/ExitPrompt.jsx";
 import { useSliderDrag } from "./components/useSliderDrag.js";
 import { useKeyboardControls } from "./components/useKeyboardControls.js";
 import { useDrawerSwipe } from "./components/useDrawerSwipe.js";
@@ -34,7 +33,6 @@ function Shell() {
   // into the same screen and only the id tells them apart.
   const [navId, setNavId] = useState("player");
   const [screen, setScreen] = useState("player");
-  const [exitPromptOpen, setExitPromptOpen] = useState(false);
 
   const {
     anyOpen, closeOverlays, openDrawer, exitApp,
@@ -48,8 +46,7 @@ function Shell() {
   useDrawerSwipe({
     onOpen: openDrawer,
     onClose: closeOverlays,
-    drawerOpen,
-    enabled: !exitPromptOpen
+    drawerOpen
   });
 
   // The player is the one screen pinned to a single viewport; the rest still
@@ -59,40 +56,27 @@ function Shell() {
   }, [screen]);
 
   /**
-   * Leaving, with a way back if it turns out we cannot.
-   *
-   * Installed, exitApp closes the window and nothing below ever runs. In a
-   * browser tab with no page behind it there is nothing it can do, and the
-   * callback takes the prompt down rather than leaving it up having visibly
-   * failed.
-   */
-  const leaveApp = useCallback(() => {
-    exitApp(() => setExitPromptOpen(false));
-  }, [exitApp]);
-
-  /**
    * What Back does, as one ordered list.
    *
-   * Every press takes exactly one step outward, and the last step is leaving:
+   * Every press takes exactly one step outward, and the last step is out:
    *
    *   picker or sheet open  ->  close it
-   *   drawer open           ->  ask about leaving
    *   glossary / analytics
    *     / settings          ->  open the drawer, the way you came in
-   *   player                ->  ask about leaving
-   *   prompt already up     ->  leave
+   *   drawer open           ->  leave
+   *   player                ->  leave
    *
-   * Which makes Back from the player two presses to exit, and from any other
-   * screen a walk back through the drawer to the same question. The order lives
-   * here, in one function, rather than being split between this file and the
-   * history handling - that split is what made it behave differently depending
-   * on how you had arrived.
+   * There is no confirmation. Leaving an installed app is not destructive -
+   * the practice log is written as each session ends, the settings are saved
+   * when you save them, and the app reopens where it was - so a dialog asking
+   * whether you meant it would be a tap between the user and the thing they
+   * asked for.
+   *
+   * The order lives here, in one function, rather than being split between this
+   * file and the history handling - that split is what made Back behave
+   * differently depending on how you had arrived.
    */
   const handleBack = useCallback(() => {
-    if (exitPromptOpen) {
-      leaveApp();
-      return;
-    }
     if (picker) {
       closePicker();
       return;
@@ -102,21 +86,17 @@ function Shell() {
       return;
     }
     if (drawerOpen || screen === "player") {
-      setExitPromptOpen(true);
+      exitApp();
       return;
     }
     openDrawer();
-  }, [
-    exitPromptOpen, picker, sheet, drawerOpen, screen,
-    leaveApp, closePicker, closeOverlays, openDrawer
-  ]);
+  }, [picker, sheet, drawerOpen, screen, exitApp, closePicker, closeOverlays, openDrawer]);
 
   useEffect(() => {
     setBackHandler(handleBack);
   }, [handleBack, setBackHandler]);
 
   const navigate = (item) => {
-    setExitPromptOpen(false);
     setNavId(item.id);
     setScreen(item.target);
     // Any nav item other than the two player doors leaves accompaniment mode
@@ -181,11 +161,6 @@ function Shell() {
       />
       <Screensaver />
       <TilePicker />
-      <ExitPrompt
-        open={exitPromptOpen}
-        onStay={() => setExitPromptOpen(false)}
-        onExit={leaveApp}
-      />
     </>
   );
 }

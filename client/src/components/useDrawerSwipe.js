@@ -36,10 +36,8 @@ export function useDrawerSwipe({ onOpen, onClose, drawerOpen, enabled = true }) 
     const isExcluded = (target) => {
       if (!target?.closest) return false;
 
-      // Never, in either direction: it is the one thing that must be answered
-      // rather than swiped away from.
-      if (target.closest(".exit-prompt")) return true;
-      // The screensaver's whole job is to swallow the next touch.
+      // Never, in either direction: the screensaver's whole job is to swallow
+      // the next touch.
       if (target.closest(".screensaver.active")) return true;
 
       // Closing: the drawer is the surface being swiped, so it is fair game.

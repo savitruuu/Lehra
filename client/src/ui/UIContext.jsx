@@ -106,29 +106,27 @@ export function UIProvider({ children }) {
    *
    * In an ordinary tab it steps back past both entries the app owns - its own
    * first page and the spare armed above it - landing on whatever the user was
-   * looking at before Lehra. If there is nothing behind it, nothing happens,
-   * and `onStuck` lets the caller take the prompt down rather than leave a
-   * dialog sitting there having visibly failed.
+   * looking at before Lehra. If there is nothing behind it, nothing happens and
+   * the app simply carries on, which is the only honest outcome available.
    *
-   * It emphatically does not navigate to about:blank any more. That did leave
-   * the app, technically, and what the user saw was a blank browser page where
-   * their practice tool used to be.
+   * It emphatically does not navigate to about:blank. That did leave the app,
+   * technically, and what the user saw was a blank browser page where their
+   * practice tool used to be.
    *
    * exitingRef stops the popstate from go(-2) being read as another Back press
    * and re-arming the entry we are trying to leave through - which is what made
-   * the Leave button appear to do nothing at all.
+   * leaving appear to do nothing at all.
    */
-  const exitApp = useCallback((onStuck) => {
+  const exitApp = useCallback(() => {
     exitingRef.current = true;
     window.close();
     window.history.go(-2);
 
     window.setTimeout(() => {
-      // Still here: an ordinary tab with no page behind it. Nothing more can be
-      // done, so stop pretending and let the app carry on.
+      // Still here: an ordinary tab with no page behind it. Re-arm, so Back
+      // keeps working rather than walking out on the next press.
       exitingRef.current = false;
       armBack();
-      onStuck?.();
     }, 400);
   }, [armBack]);
 
