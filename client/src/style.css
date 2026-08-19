@@ -151,9 +151,9 @@ body.palette-midnight {
   --select-text: #e6e9ee;
   --select-active: #232b38;
 
-  --bg-primary: #10141a;
-  --bg-secondary: #171d26;
-  --bg-gradient: linear-gradient(145deg, #10141a 0%, #171d26 50%, #1e2733 100%);
+  --bg-primary: #000000;
+  --bg-secondary: #0b0e13;
+  --bg-gradient: linear-gradient(145deg, #000000 0%, #0b0e13 50%, #141a24 100%);
   --panel-bg: rgba(124, 135, 152, 0.1);
   --panel-border: rgba(124, 135, 152, 0.18);
 
@@ -2878,17 +2878,17 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
   body.palette-midnight.dark-mode {
     color-scheme: dark;
 
-    --paper: #10141A;
-    --card: #171D26;
-    --line: #232B38;
-    --rule: #262F3D;
-    --btn-face: #1B212C;
+    --paper: #000000;
+    --card: #0B0E13;
+    --line: #1C2230;
+    --rule: #1F2634;
+    --btn-face: #12161F;
     --terracotta: #7C8798;
     --terracotta-deep: #5F6D82;
     --terracotta-wash: rgba(124, 135, 152, 0.16);
     --rosette: rgba(124, 135, 152, 0.24);
     --olive: #D9A94F;
-    --track: #2A3140;
+    --track: #232A38;
     --paper-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
     --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.5);
     --shadow-lift: 0 12px 34px rgba(0, 0, 0, 0.6);

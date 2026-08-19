@@ -1,0 +1,55 @@
+# Render Blueprint.
+#
+# NOTE: this does not retroactively govern a service that was created by hand in
+# the dashboard. An existing service keeps whatever settings it was given there
+# until you either update them to match this file or recreate the service from
+# the Blueprint (Render dashboard -> Blueprints -> New Blueprint Instance).
+#
+# It is committed anyway so the deploy is described in the repository rather
+# than only in a web form, and so the next person does not have to guess how
+# this is served.
+
+services:
+  # The React app, built and served by nginx from the Dockerfile at the repo
+  # root. That Dockerfile builds client/ and publishes client/dist - before the
+  # MERN conversion it copied the pre-build app from the repository root
+  # instead, which is why a service pointed at the old Dockerfile keeps serving
+  # the old app no matter what lands in client/.
+  - type: web
+    name: lehra
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: singapore
+    plan: free
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      # nginx templates ${PORT} rather than hardcoding 80 - Render injects the
+      # port it wants the container to listen on.
+      - key: PORT
+        value: 8080
+
+  # The accounts API. Commented out rather than deleted: it needs MONGODB_URI
+  # and JWT_SECRET set as secrets in the dashboard before it can start, and the
+  # app deliberately works without it - accounts are optional and no screen uses
+  # them yet. Uncomment when there is a login UI to serve.
+  #
+  # - type: web
+  #   name: lehra-api
+  #   runtime: node
+  #   rootDir: server
+  #   buildCommand: npm ci
+  #   startCommand: npm start
+  #   region: singapore
+  #   plan: free
+  #   healthCheckPath: /healthz
+  #   envVars:
+  #     - key: MONGODB_URI
+  #       sync: false          # set in the dashboard; never commit it
+  #     - key: JWT_SECRET
+  #       sync: false
+  #     - key: COOKIE_SECURE
+  #       value: "true"        # Render terminates TLS, so the cookie must be Secure
+  #     - key: CLIENT_ORIGIN
+  #       value: https://lehra.onrender.com

@@ -1,13 +1,33 @@
 # Lehra, as a container.
 #
-# There is no build stage because there is nothing to build: the app is eight
-# source files and a directory of mp3s, served as they sit on disk. Adding a
-# bundler here would buy nothing and cost a toolchain.
+# Two stages now, where there used to be none. The app was eight source files
+# and a directory of mp3s served as they sat on disk, and a bundler would have
+# bought nothing; it is a React app since the MERN conversion, so there is a
+# real build to run and the result is what nginx serves. The build tooling stays
+# in the first stage and never reaches the published image.
+#
+# What ships is client/dist: the bundled app plus everything under
+# client/public, which is where the audio lives.
+
+# ---------------------------------------------------------------- build ---
+FROM node:22-alpine AS build
+
+WORKDIR /build
+
+# Manifests first, so a change to application source does not invalidate the
+# dependency layer - `npm ci` is the slow step and it only needs these two.
+COPY client/package.json client/package-lock.json ./
+RUN npm ci
+
+COPY client/ ./
+RUN npm run build
+
+# ---------------------------------------------------------------- serve ---
 FROM nginx:1.27-alpine
 
 # The config below is a template so that ${PORT} can be filled in at start-up -
-# Cloud Run, App Runner and Container Apps all inject the port they want the
-# container to listen on rather than letting it choose.
+# Render, Cloud Run, App Runner and Container Apps all inject the port they want
+# the container to listen on rather than letting it choose.
 #
 # The filter is not optional. nginx's entrypoint runs envsubst over the
 # template, and with no filter it substitutes every variable it finds - which
@@ -20,20 +40,11 @@ ENV PORT=8080
 
 COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 
-WORKDIR /usr/share/nginx/html
-
-# Named explicitly rather than `COPY . .`, so that the working notes, the server
-# log and anything else that accumulates in the project directory cannot end up
-# on a public URL by accident. A new source file has to be added here to ship,
-# which is the intended friction.
-COPY index.html style.css ./
-COPY analytics.js app.js audio.js instruments.js tabla.js taal_data.js ./
-COPY tanpura-dsp.js tanpura-worker.js ./
-# The app mark. 192 and 512 are not referenced by index.html yet - they are the
-# sizes a web app manifest asks for, and are shipped now so that adding one is a
-# manifest file and nothing else.
-COPY icon.svg icon-32.png icon-180.png icon-192.png icon-512.png ./
-COPY audio ./audio
+# The whole build output, rather than files named one at a time the way the
+# pre-build image did. The safety that hand-listing bought is now the build's
+# job: nothing reaches dist/ that Vite was not asked to emit, so working notes
+# and stray logs cannot arrive here by accident.
+COPY --from=build /build/dist /usr/share/nginx/html
 
 EXPOSE 8080
 

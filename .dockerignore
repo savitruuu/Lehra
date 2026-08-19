@@ -1,19 +1,51 @@
-# The Dockerfile names the files it ships one by one, so nothing here can leak
-# into the image either way. This is about build-context size and speed: every
-# path not excluded is uploaded to the daemon before the build starts.
+# Build-context size and speed: every path not excluded here is uploaded to the
+# daemon before the build starts. The image itself only ever contains what the
+# build stage emits into client/dist, so nothing below can leak into it either
+# way - this is about not shipping 15MB to the builder to ignore most of it.
+
 .git
 .gitignore
-.vscode
 .dockerignore
 Dockerfile
 compose.yaml
-docker/
-node_modules
+.github
+.vscode
+k8s
+
+# Installed and rebuilt inside the image; a host copy would be the wrong
+# platform's binaries anyway.
+**/node_modules
+**/dist
+**/.vite
+
+# Secrets. Not tracked by git either, but a build context is assembled from the
+# working directory rather than from git, so it has to be named here too.
+**/.env
+
+# The API is a separate service with its own deployment - this image is the
+# frontend only.
+server
+
+# The pre-MERN app, still in the repository root and still runnable, but not
+# what gets built or served any more. The root audio/ directory is the same
+# 7.4MB as client/public/audio, and only the latter reaches the build.
+audio
+index.html
+app.js
+audio.js
+analytics.js
+instruments.js
+tabla.js
+taal_data.js
+tanpura-dsp.js
+tanpura-worker.js
+style.css
+icon.svg
+icon-*.png
+.nojekyll
 
 # Working notes and local output - not served, not shipped.
-README.md
-DEPLOY.md
-context.md
+*.md
 server_log.txt
 *.apk
 *.log
