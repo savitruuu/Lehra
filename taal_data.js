@@ -285,7 +285,7 @@ const TAAL_DATA = {
     vibhaags: [4, 4, 4, 4],
     tali_positions:  [1, 5, 13],
     khali_positions: [9],
-    theka: ["Dha","Dhin","Dhin","Dha","Dha","Dhin","Dhin","Dha","Dha","Tin","Tin","Ta","Ta","Dhin","Dhin","Dha"],
+    theka: ["Dha","Dhin","Dhin","Dha","Dha","Dhin","Dhin","Dha","Dha","Tun","Tin","Ta","Ta","Dhin","Dhin","Dha"],
     get lehra() { return buildTaalLehra(this.matras); }
   },
   jhaptaal: {
