@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-/** How far right a finger must travel before it counts as a swipe. */
+/** How far a finger must travel before it counts as a swipe. */
 const MIN_DISTANCE = 70;
 /** Vertical slop allowed over that distance - beyond it, this was a scroll. */
 const MAX_DRIFT = 55;
@@ -8,38 +8,50 @@ const MAX_DRIFT = 55;
 const MAX_DURATION_MS = 700;
 
 /**
- * Opens the drawer on a rightward swipe, from anywhere in the app.
+ * The drawer's swipe gestures: right anywhere to open it, left to put it back.
  *
  * Touch events only, deliberately: a mouse drag across the window is not a
  * gesture anyone means, and binding this to pointer events would fire it on
  * every desktop text selection.
  *
- * The exclusions matter more than the thresholds. The player is covered in
- * horizontal sliders - four volumes, the tempo, the fine-tune - and every one
- * of them is a rightward drag that must not also open the drawer. Same for the
- * option picker, which scrolls, and the sheets, which the user is inside rather
- * than navigating away from.
+ * The exclusions matter more than the thresholds, and they differ by direction.
+ * With the drawer shut, the player is covered in horizontal sliders - four
+ * volumes, the tempo, the fine-tune - and every one of them is a rightward drag
+ * that must not also open the drawer. With it open, the drawer itself is where
+ * the finger will be, so it stops being excluded and becomes the thing being
+ * swiped.
  */
-export function useDrawerSwipe(onOpen, { enabled = true } = {}) {
+export function useDrawerSwipe({ onOpen, onClose, drawerOpen, enabled = true }) {
   const startRef = useRef(null);
-  const onOpenRef = useRef(onOpen);
-  onOpenRef.current = onOpen;
+
+  // Refs, so the listeners can be bound once and still see current values -
+  // rebinding four touch handlers every time the drawer opens would drop a
+  // gesture already in progress.
+  const stateRef = useRef({ onOpen, onClose, drawerOpen });
+  stateRef.current = { onOpen, onClose, drawerOpen };
 
   useEffect(() => {
     if (!enabled) return;
 
     const isExcluded = (target) => {
       if (!target?.closest) return false;
+
+      // Never, in either direction: it is the one thing that must be answered
+      // rather than swiped away from.
+      if (target.closest(".exit-prompt")) return true;
+      // The screensaver's whole job is to swallow the next touch.
+      if (target.closest(".screensaver.active")) return true;
+
+      // Closing: the drawer is the surface being swiped, so it is fair game.
+      if (stateRef.current.drawerOpen) return false;
+
       return !!(
         // Anything that is itself a horizontal drag.
         target.closest('input[type="range"]') ||
         // Overlays own their own gestures while they are up.
         target.closest(".tile-picker") ||
         target.closest(".mix-sheet.open") ||
-        target.closest(".sidebar") ||
-        target.closest(".exit-prompt") ||
-        // The screensaver's whole job is to swallow the next touch.
-        target.closest(".screensaver.active")
+        target.closest(".sidebar")
       );
     };
 
@@ -56,7 +68,7 @@ export function useDrawerSwipe(onOpen, { enabled = true } = {}) {
       const start = startRef.current;
       if (!start) return;
       // Abandon as soon as the finger commits to vertical travel, so a scroll
-      // that happens to drift right never turns into a drawer.
+      // that happens to drift sideways never moves the drawer.
       const t = e.touches[0];
       if (Math.abs(t.clientY - start.y) > MAX_DRIFT) startRef.current = null;
     };
@@ -70,12 +82,14 @@ export function useDrawerSwipe(onOpen, { enabled = true } = {}) {
       const dx = t.clientX - start.x;
       const dy = Math.abs(t.clientY - start.y);
 
-      if (
-        dx >= MIN_DISTANCE &&
-        dy <= MAX_DRIFT &&
-        Date.now() - start.at <= MAX_DURATION_MS
-      ) {
-        onOpenRef.current?.();
+      if (dy > MAX_DRIFT || Date.now() - start.at > MAX_DURATION_MS) return;
+
+      const { onOpen: open, onClose: close, drawerOpen: isOpen } = stateRef.current;
+
+      if (isOpen) {
+        if (dx <= -MIN_DISTANCE) close?.();
+      } else if (dx >= MIN_DISTANCE) {
+        open?.();
       }
     };
 

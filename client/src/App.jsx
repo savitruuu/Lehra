@@ -44,8 +44,13 @@ function Shell() {
 
   useSliderDrag();
   useKeyboardControls();
-  // Swipe right, from anywhere, to reach the drawer.
-  useDrawerSwipe(openDrawer, { enabled: !drawerOpen && !exitPromptOpen });
+  // Swipe right from anywhere to reach the drawer, left to put it back.
+  useDrawerSwipe({
+    onOpen: openDrawer,
+    onClose: closeOverlays,
+    drawerOpen,
+    enabled: !exitPromptOpen
+  });
 
   // The player is the one screen pinned to a single viewport; the rest still
   // scroll, so the stylesheet needs to know which is showing.
