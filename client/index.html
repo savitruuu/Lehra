@@ -8,12 +8,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Lehra – Tabla Practice Companion</title>
   <meta name="description" content="A professional Hindustani classical Lehra loops companion for Tabla practice. Synthesized harmonium, flute, sitar tones, and realistic Tanpura drones.">
-  <!-- Tints the mobile browser chrome to match whichever theme is showing. -->
-  <meta name="theme-color" content="#1a312c" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#fff4e1" media="(prefers-color-scheme: light)">
+  <!-- Tints the browser and task-switcher chrome to match whichever theme is
+       showing. These are the parchment grounds the app actually paints, not the
+       forest tokens the pre-build markup carried - those belonged to a desktop
+       layout that no longer renders. -->
+  <meta name="theme-color" content="#15120F" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F9F5EE" media="(prefers-color-scheme: light)">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lehra">
+
+  <!-- What makes this an installed app rather than a home-screen shortcut.
+       Installed means standalone: its own window, no browser chrome, and a Back
+       press at the bottom of the app can actually close it and return to the
+       home screen. A shortcut cannot do that - it is a browser tab wearing an
+       icon, and nothing can close a tab the user opened. -->
+  <link rel="manifest" href="/manifest.webmanifest">
 
   <!-- App mark: the lotus, in the browser tab and on the home screen.
        SVG first because it is one file and stays sharp at any size, and every

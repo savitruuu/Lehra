@@ -59,6 +59,18 @@ function Shell() {
   }, [screen]);
 
   /**
+   * Leaving, with a way back if it turns out we cannot.
+   *
+   * Installed, exitApp closes the window and nothing below ever runs. In a
+   * browser tab with no page behind it there is nothing it can do, and the
+   * callback takes the prompt down rather than leaving it up having visibly
+   * failed.
+   */
+  const leaveApp = useCallback(() => {
+    exitApp(() => setExitPromptOpen(false));
+  }, [exitApp]);
+
+  /**
    * What Back does, as one ordered list.
    *
    * Every press takes exactly one step outward, and the last step is leaving:
@@ -78,7 +90,7 @@ function Shell() {
    */
   const handleBack = useCallback(() => {
     if (exitPromptOpen) {
-      exitApp();
+      leaveApp();
       return;
     }
     if (picker) {
@@ -96,7 +108,7 @@ function Shell() {
     openDrawer();
   }, [
     exitPromptOpen, picker, sheet, drawerOpen, screen,
-    exitApp, closePicker, closeOverlays, openDrawer
+    leaveApp, closePicker, closeOverlays, openDrawer
   ]);
 
   useEffect(() => {
@@ -172,7 +184,7 @@ function Shell() {
       <ExitPrompt
         open={exitPromptOpen}
         onStay={() => setExitPromptOpen(false)}
-        onExit={exitApp}
+        onExit={leaveApp}
       />
     </>
   );

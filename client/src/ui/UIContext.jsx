@@ -96,33 +96,53 @@ export function UIProvider({ children }) {
   }, []);
 
   /**
-   * Leave the app, for real.
+   * Leave the app.
    *
-   * Three attempts, because no single one works everywhere:
+   * Installed, this closes the window and hands the user back to their home
+   * screen, which is what Back at the bottom of an app should do. That only
+   * works in standalone display mode - window.close() is ignored for a tab the
+   * user opened themselves, and a home-screen *shortcut* is exactly that: a
+   * browser tab wearing an icon. See the manifest link in index.html.
    *
-   *  - window.close() genuinely closes an installed PWA or a Trusted Web
-   *    Activity, which is where this app is headed, and is ignored in a tab the
-   *    user opened themselves.
-   *  - go(-2) steps back past both entries the app owns - its own first page
-   *    and the spare armed above it - landing on whatever the user was looking
-   *    at before Lehra. If the page navigates, everything below is discarded
-   *    with it.
-   *  - If it did not navigate, Lehra was the first page in the tab and there is
-   *    nowhere behind it. Rather than leave the user staring at a dialog that
-   *    did nothing, the app gets out of its own way.
+   * In an ordinary tab it steps back past both entries the app owns - its own
+   * first page and the spare armed above it - landing on whatever the user was
+   * looking at before Lehra. If there is nothing behind it, nothing happens,
+   * and `onStuck` lets the caller take the prompt down rather than leave a
+   * dialog sitting there having visibly failed.
+   *
+   * It emphatically does not navigate to about:blank any more. That did leave
+   * the app, technically, and what the user saw was a blank browser page where
+   * their practice tool used to be.
    *
    * exitingRef stops the popstate from go(-2) being read as another Back press
-   * and re-arming the entry we are trying to leave through - which is exactly
-   * what made the Leave button appear to do nothing.
+   * and re-arming the entry we are trying to leave through - which is what made
+   * the Leave button appear to do nothing at all.
    */
-  const exitApp = useCallback(() => {
+  const exitApp = useCallback((onStuck) => {
     exitingRef.current = true;
     window.close();
     window.history.go(-2);
+
     window.setTimeout(() => {
-      window.location.replace("about:blank");
-    }, 250);
-  }, []);
+      // Still here: an ordinary tab with no page behind it. Nothing more can be
+      // done, so stop pretending and let the app carry on.
+      exitingRef.current = false;
+      armBack();
+      onStuck?.();
+    }, 400);
+  }, [armBack]);
+
+  /**
+   * True when the app is running in its own window rather than a browser tab -
+   * installed from the browser's "Install app", or launched from a home screen
+   * entry that a manifest turned into a real app rather than a shortcut.
+   */
+  const isStandalone = useCallback(
+    () =>
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true,
+    []
+  );
 
   useEffect(() => {
     // Mark the entry the app loaded on, then arm a spare above it. Back lands
@@ -158,7 +178,8 @@ export function UIProvider({ children }) {
         anyOpen,
         closeOverlays,
         setBackHandler,
-        exitApp
+        exitApp,
+        isStandalone
       }}
     >
       {children}
