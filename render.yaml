@@ -1,39 +1,73 @@
 # Render Blueprint.
 #
-# NOTE: this does not retroactively govern a service that was created by hand in
-# the dashboard. An existing service keeps whatever settings it was given there
+# NOTE: this does not retroactively govern a service created by hand in the
+# dashboard. An existing service keeps whatever settings it was given there
 # until you either update them to match this file or recreate the service from
 # the Blueprint (Render dashboard -> Blueprints -> New Blueprint Instance).
 #
 # It is committed anyway so the deploy is described in the repository rather
-# than only in a web form, and so the next person does not have to guess how
-# this is served.
+# than only in a web form.
 
 services:
-  # The React app, built and served by nginx from the Dockerfile at the repo
-  # root. That Dockerfile builds client/ and publishes client/dist - before the
-  # MERN conversion it copied the pre-build app from the repository root
-  # instead, which is why a service pointed at the old Dockerfile keeps serving
-  # the old app no matter what lands in client/.
+  # The React app, as a static site.
+  #
+  # The build command is the whole point of this file. Before the MERN
+  # conversion the site was served straight from the repository root, because
+  # there was nothing to build; the app is a React build now, so a deploy that
+  # publishes the root still publishes the pre-MERN app no matter what lands in
+  # client/. That is not a stale cache - it is a different application.
   - type: web
     name: lehra
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    runtime: static
+    buildCommand: cd client && npm ci && npm run build
+    staticPublishPath: ./client/dist
     region: singapore
-    plan: free
-    healthCheckPath: /healthz
     autoDeploy: true
+
     envVars:
-      # nginx templates ${PORT} rather than hardcoding 80 - Render injects the
-      # port it wants the container to listen on.
-      - key: PORT
-        value: 8080
+      # Vite 6 needs Node 18+; pin it rather than inherit whatever Render's
+      # default happens to be this quarter.
+      - key: NODE_VERSION
+        value: "22"
+
+    # Deliberately no catch-all rewrite to /index.html. The app has no router -
+    # "/" is the only page - so a rewrite would buy nothing and would cost real
+    # error handling: a missing mp3 would come back as an HTML document with a
+    # 200, and the audio loader would report a decode failure instead of a 404.
+    headers:
+      # Hashed bundles: a changed file is a changed URL, so a cached one can
+      # never be the wrong version. That is what makes a year safe.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+      # 172 files, and the names encode the contents - santoor C4 is always
+      # santoor C4. Nothing here is ever edited in place.
+      - path: /audio/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+      # The one file that must never be served stale: it names the hashed
+      # bundles above, so a browser holding an old copy holds the whole old app.
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
 
   # The accounts API. Commented out rather than deleted: it needs MONGODB_URI
   # and JWT_SECRET set as secrets in the dashboard before it can start, and the
   # app deliberately works without it - accounts are optional and no screen uses
   # them yet. Uncomment when there is a login UI to serve.
+  #
+  # A static site cannot host this; it needs its own Web Service. The client
+  # calls /api/..., so either put the two behind one domain or set CLIENT_ORIGIN
+  # and point the client at the API's URL.
   #
   # - type: web
   #   name: lehra-api
