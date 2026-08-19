@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { UIProvider, useUI } from "./ui/UIContext.jsx";
 import { PlayerProvider, usePlayer } from "./player/PlayerContext.jsx";
@@ -10,6 +10,7 @@ import { Screensaver } from "./components/Screensaver.jsx";
 import { ExitPrompt } from "./components/ExitPrompt.jsx";
 import { useSliderDrag } from "./components/useSliderDrag.js";
 import { useKeyboardControls } from "./components/useKeyboardControls.js";
+import { useDrawerSwipe } from "./components/useDrawerSwipe.js";
 
 import { PlayerScreen } from "./screens/PlayerScreen.jsx";
 import { AnalyticsScreen } from "./screens/AnalyticsScreen.jsx";
@@ -35,11 +36,16 @@ function Shell() {
   const [screen, setScreen] = useState("player");
   const [exitPromptOpen, setExitPromptOpen] = useState(false);
 
-  const { anyOpen, closeOverlays, setBackFallback, openDrawer, exitApp } = useUI();
+  const {
+    anyOpen, closeOverlays, openDrawer, exitApp,
+    drawerOpen, sheet, picker, closePicker, setBackHandler
+  } = useUI();
   const { setTablaMode, screensaverOn, noteActivity } = usePlayer();
 
   useSliderDrag();
   useKeyboardControls();
+  // Swipe right, from anywhere, to reach the drawer.
+  useDrawerSwipe(openDrawer, { enabled: !drawerOpen && !exitPromptOpen });
 
   // The player is the one screen pinned to a single viewport; the rest still
   // scroll, so the stylesheet needs to know which is showing.
@@ -48,19 +54,49 @@ function Shell() {
   }, [screen]);
 
   /**
-   * What Back means, per screen.
+   * What Back does, as one ordered list.
    *
-   * On the glossary, analytics and settings it opens the drawer - those screens
-   * are reached from the drawer, so Back returning you to it is the way you
-   * came. On the player there is nowhere further back to go, so it asks before
-   * leaving. Either way a second press within two seconds exits outright; that
-   * is handled in UIContext, which is the only place that sees the raw event.
+   * Every press takes exactly one step outward, and the last step is leaving:
+   *
+   *   picker or sheet open  ->  close it
+   *   drawer open           ->  ask about leaving
+   *   glossary / analytics
+   *     / settings          ->  open the drawer, the way you came in
+   *   player                ->  ask about leaving
+   *   prompt already up     ->  leave
+   *
+   * Which makes Back from the player two presses to exit, and from any other
+   * screen a walk back through the drawer to the same question. The order lives
+   * here, in one function, rather than being split between this file and the
+   * history handling - that split is what made it behave differently depending
+   * on how you had arrived.
    */
+  const handleBack = useCallback(() => {
+    if (exitPromptOpen) {
+      exitApp();
+      return;
+    }
+    if (picker) {
+      closePicker();
+      return;
+    }
+    if (sheet) {
+      closeOverlays();
+      return;
+    }
+    if (drawerOpen || screen === "player") {
+      setExitPromptOpen(true);
+      return;
+    }
+    openDrawer();
+  }, [
+    exitPromptOpen, picker, sheet, drawerOpen, screen,
+    exitApp, closePicker, closeOverlays, openDrawer
+  ]);
+
   useEffect(() => {
-    setBackFallback(
-      screen === "player" ? () => setExitPromptOpen(true) : () => openDrawer()
-    );
-  }, [screen, setBackFallback, openDrawer]);
+    setBackHandler(handleBack);
+  }, [handleBack, setBackHandler]);
 
   const navigate = (item) => {
     setExitPromptOpen(false);

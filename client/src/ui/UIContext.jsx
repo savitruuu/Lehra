@@ -8,23 +8,24 @@ import {
 } from "react";
 
 /**
- * The three things that can sit on top of the player - the drawer, a bottom
- * sheet, the anchored option picker - and the Back button that dismisses them.
+ * The overlays that can sit on top of a screen - the drawer, a bottom sheet,
+ * the anchored option picker - and the Back button that walks back out of them.
  *
  * They live together because they are mutually exclusive (opening any one
- * closes the other two) and because they share the browser's history with each
- * other and with the Back handling below. Three separate pieces of state would
- * mean three places to remember that rule and three chances to get Back wrong.
+ * closes the other two) and because Back has to consider all of them in order.
+ *
+ * HISTORY MODEL
+ *
+ * Exactly one spare entry, armed at all times, and nothing else ever touches
+ * history. Opening an overlay does not push; closing one does not pop.
+ *
+ * The previous version gave every overlay its own entry, which meant closing a
+ * drawer by hand had to pop that entry, which fired a popstate that looked
+ * exactly like the user pressing Back - so the handler had to guess which was
+ * which, and guessed wrong often enough to make Back feel random. One entry
+ * removes the ambiguity: every popstate is the user, always.
  */
 const UIContext = createContext(null);
-
-/**
- * Two Back presses inside this window mean "I really do want out", and the app
- * stops intercepting. Long enough that a deliberate double-press registers,
- * short enough that a press now and another a minute later are two separate
- * intentions rather than an accidental exit.
- */
-const DOUBLE_BACK_MS = 2000;
 
 export function UIProvider({ children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -32,90 +33,37 @@ export function UIProvider({ children }) {
   const [picker, setPicker] = useState(null);
 
   const anyOpen = drawerOpen || sheet !== null || picker !== null;
-  const anyOpenRef = useRef(anyOpen);
-  anyOpenRef.current = anyOpen;
 
   /**
-   * What Back should do when it lands with nothing open.
-   *
-   * Registered by the shell, because the answer depends on which screen is
-   * showing and this context deliberately knows nothing about screens.
+   * What Back means. Registered by the shell, which is the only place that
+   * knows both which screen is showing and whether the exit prompt is up.
    */
-  const backFallbackRef = useRef(null);
-  const setBackFallback = useCallback((fn) => {
-    backFallbackRef.current = fn;
+  const backHandlerRef = useRef(null);
+  const setBackHandler = useCallback((fn) => {
+    backHandlerRef.current = fn;
   }, []);
 
-  // Set while we call history.back() ourselves, so the popstate it triggers can
-  // be told apart from the user pressing Back. Without it, closing the drawer by
-  // hand pops an entry, the handler sees nothing open, and the fallback below
-  // fires as though the user had asked to go back.
-  const programmaticBackRef = useRef(false);
-  const lastBackAtRef = useRef(0);
+  // Set once the user has confirmed they are leaving, so the popstate that
+  // leaving provokes is ignored rather than treated as another Back press.
+  const exitingRef = useRef(false);
 
-  const closeOverlays = useCallback(({ fromHistory = false } = {}) => {
+  const closeOverlays = useCallback(() => {
     setDrawerOpen(false);
     setSheet(null);
     setPicker(null);
-
-    if (!fromHistory && anyOpenRef.current && window.history.state?.overlay) {
-      programmaticBackRef.current = true;
-      window.history.back();
-    }
-  }, []);
-
-  /**
-   * Puts a spare entry on top of the history stack.
-   *
-   * This is what makes Back reach the app at all. Without an entry to consume,
-   * the first Back press walks straight out of the page and no handler runs -
-   * so the app keeps one in reserve at all times and replaces it after every
-   * press it handles.
-   */
-  const armBack = useCallback(() => {
-    if (!window.history.state?.lehraBack) {
-      window.history.pushState({ lehraBack: true }, "");
-    }
-  }, []);
-
-  /** Kept for the overlays, which mark their entry so closeOverlays can pop it. */
-  const pushOverlayHistory = useCallback(() => {
-    if (!window.history.state?.overlay) {
-      window.history.pushState({ overlay: true, lehraBack: true }, "");
-    }
-  }, []);
-
-  /**
-   * Leave the app.
-   *
-   * A web page cannot force its own tab shut: window.close() is honoured only
-   * for a window opened by script or an installed PWA. So the honest thing is
-   * to stop holding the user in - drop the spare entry and let the navigation
-   * they asked for continue. In a plain tab that lands on whatever they were
-   * looking at before Lehra, and if Lehra was the first page in the tab the
-   * browser simply stays put, which is the correct non-destructive outcome.
-   */
-  const exitApp = useCallback(() => {
-    window.close();
-    window.history.go(-1);
   }, []);
 
   const openDrawer = useCallback(() => {
     setSheet(null);
     setPicker(null);
     setDrawerOpen(true);
-    pushOverlayHistory();
-  }, [pushOverlayHistory]);
+  }, []);
 
-  const openSheet = useCallback(
-    (name) => {
-      setDrawerOpen(false);
-      setPicker(null);
-      setSheet(name);
-      pushOverlayHistory();
-    },
-    [pushOverlayHistory]
-  );
+  const openSheet = useCallback((name) => {
+    setDrawerOpen(false);
+    setPicker(null);
+    setSheet(name);
+  }, []);
 
   /**
    * Opens an option list anchored to `anchor`.
@@ -123,73 +71,78 @@ export function UIProvider({ children }) {
    * `anchor` doubles as the picker's identity, which is what lets a second tap
    * on the same tile close the list rather than close-and-reopen it.
    */
-  const openPicker = useCallback(
-    (config) => {
+  const openPicker = useCallback((config) => {
+    setDrawerOpen(false);
+    setSheet(null);
+    setPicker(config);
+  }, []);
+
+  const togglePicker = useCallback((config) => {
+    setPicker((current) => {
+      if (current && current.anchor === config.anchor) return null;
       setDrawerOpen(false);
       setSheet(null);
-      setPicker(config);
-      pushOverlayHistory();
-    },
-    [pushOverlayHistory]
-  );
-
-  const togglePicker = useCallback(
-    (config) => {
-      setPicker((current) => {
-        if (current && current.anchor === config.anchor) return null;
-        setDrawerOpen(false);
-        setSheet(null);
-        pushOverlayHistory();
-        return config;
-      });
-    },
-    [pushOverlayHistory]
-  );
+      return config;
+    });
+  }, []);
 
   const closePicker = useCallback(() => setPicker(null), []);
 
+  /** Puts the spare entry back on top, so the next Back press reaches us too. */
+  const armBack = useCallback(() => {
+    if (!window.history.state?.lehraBack) {
+      window.history.pushState({ lehraBack: true }, "");
+    }
+  }, []);
+
+  /**
+   * Leave the app, for real.
+   *
+   * Three attempts, because no single one works everywhere:
+   *
+   *  - window.close() genuinely closes an installed PWA or a Trusted Web
+   *    Activity, which is where this app is headed, and is ignored in a tab the
+   *    user opened themselves.
+   *  - go(-2) steps back past both entries the app owns - its own first page
+   *    and the spare armed above it - landing on whatever the user was looking
+   *    at before Lehra. If the page navigates, everything below is discarded
+   *    with it.
+   *  - If it did not navigate, Lehra was the first page in the tab and there is
+   *    nowhere behind it. Rather than leave the user staring at a dialog that
+   *    did nothing, the app gets out of its own way.
+   *
+   * exitingRef stops the popstate from go(-2) being read as another Back press
+   * and re-arming the entry we are trying to leave through - which is exactly
+   * what made the Leave button appear to do nothing.
+   */
+  const exitApp = useCallback(() => {
+    exitingRef.current = true;
+    window.close();
+    window.history.go(-2);
+    window.setTimeout(() => {
+      window.location.replace("about:blank");
+    }, 250);
+  }, []);
+
   useEffect(() => {
-    // Mark the entry the app loaded on, then arm a spare above it. Back then
-    // lands on the marked entry rather than leaving, and exitApp's go(-1) has
-    // somewhere to go when the user really means it.
+    // Mark the entry the app loaded on, then arm a spare above it. Back lands
+    // on the marked one instead of leaving, and exitApp has two to step past.
     if (!window.history.state?.lehraBase) {
       window.history.replaceState({ lehraBase: true }, "");
     }
     armBack();
 
     const onPopState = () => {
-      // Our own history.back(), not the user's.
-      if (programmaticBackRef.current) {
-        programmaticBackRef.current = false;
-        armBack();
-        return;
-      }
-
-      const now = Date.now();
-      const isSecondPress = now - lastBackAtRef.current < DOUBLE_BACK_MS;
-      lastBackAtRef.current = now;
-
-      // Twice in quick succession means out, whatever is on screen.
-      if (isSecondPress) {
-        exitApp();
-        return;
-      }
-
-      // Re-arm before doing anything else, so the press after this one is also
-      // ours to handle rather than walking out of the app.
+      if (exitingRef.current) return;
+      // Re-arm first: whatever the handler decides, the press after this one
+      // has to reach us as well rather than walking out of the app.
       armBack();
-
-      if (anyOpenRef.current) {
-        closeOverlays({ fromHistory: true });
-        return;
-      }
-
-      backFallbackRef.current?.();
+      backHandlerRef.current?.();
     };
 
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [armBack, closeOverlays, exitApp]);
+  }, [armBack]);
 
   return (
     <UIContext.Provider
@@ -204,7 +157,7 @@ export function UIProvider({ children }) {
         closePicker,
         anyOpen,
         closeOverlays,
-        setBackFallback,
+        setBackHandler,
         exitApp
       }}
     >
