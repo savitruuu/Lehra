@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Lehra">
+  <title>Lehra</title>
+  <!-- The app mark: the same lotus the phone header carries, on the parchment
+       ground, squared off for an icon slot.
+
+       This is the primary favicon - one file, sharp at any size, and the tab
+       icon in every current browser. The PNGs beside it cover what SVG cannot:
+       Safari's home-screen icon, and Android's launcher. -->
+  <rect width="48" height="48" rx="10.5" fill="#F9F5EE"/>
+  <!-- 0.82 of the width, optically centred - the flower is bottom-heavy, so
+       centring its bounding box leaves it sitting low in the square. -->
+  <g transform="translate(4.32 11.9) scale(0.82)" fill="#B34A2E">
+    <!-- Drawn first and covered by the petals: the five fan out from a common
+         point without quite meeting there, and at icon scale that sliver of
+         background reads as a chip out of the flower. Stops at y=22.75, a hair
+         above the 22.8 where the outer petals begin, so it never shows below
+         them. In the 34px header mark the gap is sub-pixel and this is
+         unnecessary, which is why the page's own lotus does not carry it. -->
+    <path d="M22.4 18.8H25.6L24.9 22.75H23.1Z"/>
+    <path d="M24 1.5c3.1 5.2 3.1 13 0 19.4-3.1-6.4-3.1-14.2 0-19.4z"/>
+    <path d="M23.4 21.6c-4.4-2.6-7.8-7.2-8.9-12.7 4.6 1.2 8.2 4.9 8.9 12.7z"/>
+    <path d="M24.6 21.6c4.4-2.6 7.8-7.2 8.9-12.7-4.6 1.2-8.2 4.9-8.9 12.7z"/>
+    <path d="M23.2 22.8c-5.4-.4-10.5-3.5-13.4-8.3 5.2-.8 10.3 2 13.4 8.3z"/>
+    <path d="M24.8 22.8c5.4-.4 10.5-3.5 13.4-8.3-5.2-.8-10.3 2-13.4 8.3z"/>
+  </g>
+</svg>

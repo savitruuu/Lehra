@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover lets the page paint under the notch and the home
+       indicator; the safe-area insets in the stylesheet keep the fixed nav and
+       the header clear of both. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Lehra – Tabla Practice Companion</title>
+  <meta name="description" content="A professional Hindustani classical Lehra loops companion for Tabla practice. Synthesized harmonium, flute, sitar tones, and realistic Tanpura drones.">
+  <!-- Tints the mobile browser chrome to match whichever theme is showing. -->
+  <meta name="theme-color" content="#1a312c" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#fff4e1" media="(prefers-color-scheme: light)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- App mark: the lotus, in the browser tab and on the home screen.
+       SVG first because it is one file and stays sharp at any size, and every
+       current browser prefers it when offered. The 32px PNG is the fallback for
+       anything that ignores rel="icon" with an SVG type - and apple-touch-icon
+       is not a fallback at all: iOS reads only that tag when adding to the home
+       screen, and only a PNG. -->
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
+</head>
+<!-- dark-mode is the shipped starting theme; loadSettings() in the app removes
+     it when a saved theme says light. Same arrangement as the pre-build app. -->
+<body class="dark-mode">
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
