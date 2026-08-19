@@ -15,16 +15,14 @@ const SETTINGS_STORAGE_KEY = "lehra_user_settings";
 export const PALETTE_CLASSES = {
   moss: "palette-moss",
   midnight: "palette-midnight",
-  deepocean: "palette-deepocean",
-  harbor: "palette-harbor"
+  deepocean: "palette-deepocean"
 };
 
 export const PALETTE_OPTIONS = [
   { value: "default", label: "Forest & Cream (Default)" },
   { value: "moss", label: "Moss & Sage" },
   { value: "midnight", label: "Midnight Steel" },
-  { value: "deepocean", label: "Deep Ocean" },
-  { value: "harbor", label: "Harbor Blue" }
+  { value: "deepocean", label: "Deep Ocean" }
 ];
 
 export const DEFAULT_SETTINGS = {

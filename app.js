@@ -1874,8 +1874,7 @@ function loadAnalyticsDashboard() {
 const PALETTE_CLASSES = {
   moss: "palette-moss",
   midnight: "palette-midnight",
-  deepocean: "palette-deepocean",
-  harbor: "palette-harbor"
+  deepocean: "palette-deepocean"
 };
 
 function applyPalette(value) {

@@ -7,6 +7,7 @@ import { AuthProvider } from "./auth/AuthContext.jsx";
 import { Drawer, MobileHeader, MobileNav } from "./components/Navigation.jsx";
 import { TilePicker } from "./components/TilePicker.jsx";
 import { Screensaver } from "./components/Screensaver.jsx";
+import { ExitPrompt } from "./components/ExitPrompt.jsx";
 import { useSliderDrag } from "./components/useSliderDrag.js";
 import { useKeyboardControls } from "./components/useKeyboardControls.js";
 
@@ -32,8 +33,9 @@ function Shell() {
   // into the same screen and only the id tells them apart.
   const [navId, setNavId] = useState("player");
   const [screen, setScreen] = useState("player");
+  const [exitPromptOpen, setExitPromptOpen] = useState(false);
 
-  const { anyOpen, closeOverlays } = useUI();
+  const { anyOpen, closeOverlays, setBackFallback, openDrawer, exitApp } = useUI();
   const { setTablaMode, screensaverOn, noteActivity } = usePlayer();
 
   useSliderDrag();
@@ -45,7 +47,23 @@ function Shell() {
     document.body.classList.toggle("player-active", screen === "player");
   }, [screen]);
 
+  /**
+   * What Back means, per screen.
+   *
+   * On the glossary, analytics and settings it opens the drawer - those screens
+   * are reached from the drawer, so Back returning you to it is the way you
+   * came. On the player there is nowhere further back to go, so it asks before
+   * leaving. Either way a second press within two seconds exits outright; that
+   * is handled in UIContext, which is the only place that sees the raw event.
+   */
+  useEffect(() => {
+    setBackFallback(
+      screen === "player" ? () => setExitPromptOpen(true) : () => openDrawer()
+    );
+  }, [screen, setBackFallback, openDrawer]);
+
   const navigate = (item) => {
+    setExitPromptOpen(false);
     setNavId(item.id);
     setScreen(item.target);
     // Any nav item other than the two player doors leaves accompaniment mode
@@ -110,6 +128,11 @@ function Shell() {
       />
       <Screensaver />
       <TilePicker />
+      <ExitPrompt
+        open={exitPromptOpen}
+        onStay={() => setExitPromptOpen(false)}
+        onExit={exitApp}
+      />
     </>
   );
 }
