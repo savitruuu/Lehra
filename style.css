@@ -142,6 +142,172 @@ body.palette-moss.dark-mode {
   --card-shadow: 0 8px 32px rgba(26, 49, 44, 0.12);
 }
 
+/* --- Alternate palette: Midnight Steel ---
+   Near-neutral: the ground is barely blue at all, almost charcoal, with a
+   steel-blue text/accent colour doing most of the work. Quietest of the three
+   blue palettes - picked from Settings alongside Moss & Sage. */
+body.palette-midnight {
+  --select-bg: #171d26;
+  --select-text: #e6e9ee;
+  --select-active: #232b38;
+
+  --bg-primary: #10141a;
+  --bg-secondary: #171d26;
+  --bg-gradient: linear-gradient(145deg, #10141a 0%, #171d26 50%, #1e2733 100%);
+  --panel-bg: rgba(124, 135, 152, 0.1);
+  --panel-border: rgba(124, 135, 152, 0.18);
+
+  --text-primary: #e6e9ee;
+  --text-secondary: #7c8798;
+  --text-muted: #52607a;
+
+  --accent-cyan: #7c8798;
+  --accent-cyan-glow: rgba(124, 135, 152, 0.4);
+  --accent-purple: #6486b8;
+  --accent-purple-glow: rgba(100, 134, 184, 0.4);
+  --accent-gold: #d9a94f;
+  --accent-gold-glow: rgba(217, 169, 79, 0.4);
+  --accent-red: #ef4444;
+
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body.palette-midnight.dark-mode {
+  --select-bg: #ffffff;
+  --select-text: #171d26;
+  --select-active: #dbe0e8;
+
+  --bg-primary: #eef0f3;
+  --bg-secondary: #e0e4ea;
+  --bg-gradient: linear-gradient(145deg, #eef0f3 0%, #e4e8ee 100%);
+  --panel-bg: rgba(255, 255, 255, 0.85);
+  --panel-border: rgba(63, 92, 133, 0.2);
+
+  --text-primary: #171d26;
+  --text-secondary: #4b5b73;
+  --text-muted: #7c8798;
+
+  --accent-cyan: #4b5b73;
+  --accent-cyan-glow: rgba(75, 91, 115, 0.3);
+  --accent-purple: #6486b8;
+  --accent-purple-glow: rgba(100, 134, 184, 0.3);
+  --accent-gold: #93650a;
+  --accent-gold-glow: rgba(147, 101, 10, 0.3);
+  --accent-red: #dc2626;
+
+  --card-shadow: 0 8px 32px rgba(23, 29, 38, 0.12);
+}
+
+/* --- Alternate palette: Deep Ocean ---
+   Teal-leaning blue - keeps a hint of the shipped forest theme's green DNA
+   but pushes it into blue-cyan territory. */
+body.palette-deepocean {
+  --select-bg: #153847;
+  --select-text: #eaf7f2;
+  --select-active: #1d4656;
+
+  --bg-primary: #0f2632;
+  --bg-secondary: #153847;
+  --bg-gradient: linear-gradient(145deg, #0f2632 0%, #153847 50%, #1c4756 100%);
+  --panel-bg: rgba(89, 214, 220, 0.08);
+  --panel-border: rgba(89, 214, 220, 0.18);
+
+  --text-primary: #eaf7f2;
+  --text-secondary: #59d6dc;
+  --text-muted: #3f6a76;
+
+  --accent-cyan: #59d6dc;
+  --accent-cyan-glow: rgba(89, 214, 220, 0.4);
+  --accent-purple: #2f9bc4;
+  --accent-purple-glow: rgba(47, 155, 196, 0.4);
+  --accent-gold: #fbbf5a;
+  --accent-gold-glow: rgba(251, 191, 90, 0.4);
+  --accent-red: #ef4444;
+
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body.palette-deepocean.dark-mode {
+  --select-bg: #ffffff;
+  --select-text: #0c2a33;
+  --select-active: #d3ece6;
+
+  --bg-primary: #f0f7f2;
+  --bg-secondary: #e0ede4;
+  --bg-gradient: linear-gradient(145deg, #f0f7f2 0%, #e6f0e8 100%);
+  --panel-bg: rgba(255, 255, 255, 0.85);
+  --panel-border: rgba(20, 110, 130, 0.2);
+
+  --text-primary: #0c2a33;
+  --text-secondary: #146e82;
+  --text-muted: #6ea3ac;
+
+  --accent-cyan: #146e82;
+  --accent-cyan-glow: rgba(20, 110, 130, 0.3);
+  --accent-purple: #1985a3;
+  --accent-purple-glow: rgba(25, 133, 163, 0.3);
+  --accent-gold: #b36e0a;
+  --accent-gold-glow: rgba(179, 110, 10, 0.3);
+  --accent-red: #dc2626;
+
+  --card-shadow: 0 8px 32px rgba(12, 42, 51, 0.12);
+}
+
+/* --- Alternate palette: Harbor Blue ---
+   A straighter, more confident blue than Midnight Steel - closer to a
+   ship's-log navy than a dusk sky. */
+body.palette-harbor {
+  --select-bg: #14294a;
+  --select-text: #eef2fa;
+  --select-active: #1c3660;
+
+  --bg-primary: #0f1f33;
+  --bg-secondary: #14294a;
+  --bg-gradient: linear-gradient(145deg, #0f1f33 0%, #14294a 50%, #1b3459 100%);
+  --panel-bg: rgba(127, 168, 232, 0.1);
+  --panel-border: rgba(127, 168, 232, 0.2);
+
+  --text-primary: #eef2fa;
+  --text-secondary: #7fa8e8;
+  --text-muted: #496089;
+
+  --accent-cyan: #7fa8e8;
+  --accent-cyan-glow: rgba(127, 168, 232, 0.4);
+  --accent-purple: #4c7fdb;
+  --accent-purple-glow: rgba(76, 127, 219, 0.4);
+  --accent-gold: #f0b94f;
+  --accent-gold-glow: rgba(240, 185, 79, 0.4);
+  --accent-red: #ef4444;
+
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body.palette-harbor.dark-mode {
+  --select-bg: #ffffff;
+  --select-text: #10203a;
+  --select-active: #dbe6f5;
+
+  --bg-primary: #eef2fa;
+  --bg-secondary: #dde6f5;
+  --bg-gradient: linear-gradient(145deg, #eef2fa 0%, #e2e9f7 100%);
+  --panel-bg: rgba(255, 255, 255, 0.85);
+  --panel-border: rgba(47, 90, 168, 0.2);
+
+  --text-primary: #10203a;
+  --text-secondary: #2f5aa8;
+  --text-muted: #7fa8e8;
+
+  --accent-cyan: #2f5aa8;
+  --accent-cyan-glow: rgba(47, 90, 168, 0.3);
+  --accent-purple: #3767bd;
+  --accent-purple-glow: rgba(55, 103, 189, 0.3);
+  --accent-gold: #9c6a0a;
+  --accent-gold-glow: rgba(156, 106, 10, 0.3);
+  --accent-red: #dc2626;
+
+  --card-shadow: 0 8px 32px rgba(16, 32, 58, 0.12);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -2714,6 +2880,284 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
     --card-shadow: var(--paper-shadow);
   }
 
+  /* --- Palette: day, Midnight Steel ---
+     Restated for the phone skin: terracotta's job goes to steel blue, olive's
+     to a muted gold, so the pair still reads against the near-neutral ground. */
+  body.palette-midnight {
+    color-scheme: light;
+
+    --paper: #EEF0F3;
+    --card: #FFFFFF;
+    --line: #DBE0E8;
+    --rule: #DDE2EA;
+    --btn-face: #E0E4EA;
+    --terracotta: #3F5C85;
+    --terracotta-deep: #2F4666;
+    --terracotta-wash: rgba(63, 92, 133, 0.10);
+    --rosette: rgba(63, 92, 133, 0.18);
+    --olive: #93650A;
+    --track: #DFE3EA;
+    --paper-shadow: 0 2px 18px rgba(23, 29, 38, 0.08);
+    --shadow-btn: 0 1px 3px rgba(23, 29, 38, 0.14);
+    --shadow-lift: 0 10px 30px rgba(23, 29, 38, 0.16);
+    --scrim: rgba(23, 29, 38, 0.35);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #171D26;
+    --text-secondary: #4B5B73;
+    --text-muted: #7C8798;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(63, 92, 133, 0.16);
+    --accent-purple: #6486B8;
+    --accent-purple-glow: rgba(100, 134, 184, 0.14);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(147, 101, 10, 0.18);
+    --accent-red: #DC2626;
+
+    --select-bg: #FFFFFF;
+    --select-text: #171D26;
+    --select-active: #E4E8EE;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
+  /* --- Palette: night, Midnight Steel ---
+     Near-charcoal ink with the same steel blue carried over as the one
+     accent - quietest of the three blue palettes at night, too. */
+  body.palette-midnight.dark-mode {
+    color-scheme: dark;
+
+    --paper: #10141A;
+    --card: #171D26;
+    --line: #232B38;
+    --rule: #262F3D;
+    --btn-face: #1B212C;
+    --terracotta: #7C8798;
+    --terracotta-deep: #5F6D82;
+    --terracotta-wash: rgba(124, 135, 152, 0.16);
+    --rosette: rgba(124, 135, 152, 0.24);
+    --olive: #D9A94F;
+    --track: #2A3140;
+    --paper-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+    --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 12px 34px rgba(0, 0, 0, 0.6);
+    --scrim: rgba(0, 0, 0, 0.6);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #E6E9EE;
+    --text-secondary: #A7B2C2;
+    --text-muted: #5A6779;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(124, 135, 152, 0.22);
+    --accent-purple: #9FB0C9;
+    --accent-purple-glow: rgba(159, 176, 201, 0.18);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(217, 169, 79, 0.22);
+    --accent-red: #EF4444;
+
+    --select-bg: #171D26;
+    --select-text: #E6E9EE;
+    --select-active: #232B38;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
+  /* --- Palette: day, Deep Ocean ---
+     Terracotta's job goes to a teal-leaning blue, olive stays a warm gold -
+     the two readouts keep the same warm/cool contrast as the shipped theme. */
+  body.palette-deepocean {
+    color-scheme: light;
+
+    --paper: #F0F7F2;
+    --card: #FFFFFF;
+    --line: #D3E6E0;
+    --rule: #D6E8E2;
+    --btn-face: #E0EDE4;
+    --terracotta: #146E82;
+    --terracotta-deep: #0F5464;
+    --terracotta-wash: rgba(20, 110, 130, 0.10);
+    --rosette: rgba(20, 110, 130, 0.18);
+    --olive: #B36E0A;
+    --track: #DBE8E2;
+    --paper-shadow: 0 2px 18px rgba(12, 42, 51, 0.08);
+    --shadow-btn: 0 1px 3px rgba(12, 42, 51, 0.14);
+    --shadow-lift: 0 10px 30px rgba(12, 42, 51, 0.16);
+    --scrim: rgba(12, 42, 51, 0.35);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #0C2A33;
+    --text-secondary: #3F6A76;
+    --text-muted: #6EA3AC;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(20, 110, 130, 0.16);
+    --accent-purple: #1985A3;
+    --accent-purple-glow: rgba(25, 133, 163, 0.14);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(179, 110, 10, 0.18);
+    --accent-red: #DC2626;
+
+    --select-bg: #FFFFFF;
+    --select-text: #0C2A33;
+    --select-active: #DBEEE8;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
+  /* --- Palette: night, Deep Ocean --- */
+  body.palette-deepocean.dark-mode {
+    color-scheme: dark;
+
+    --paper: #0F2632;
+    --card: #153847;
+    --line: #1D4656;
+    --rule: #204A5A;
+    --btn-face: #193F4E;
+    --terracotta: #59D6DC;
+    --terracotta-deep: #3AA8AE;
+    --terracotta-wash: rgba(89, 214, 220, 0.16);
+    --rosette: rgba(89, 214, 220, 0.24);
+    --olive: #FBBF5A;
+    --track: #1E4753;
+    --paper-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+    --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 12px 34px rgba(0, 0, 0, 0.6);
+    --scrim: rgba(0, 0, 0, 0.6);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #EAF7F2;
+    --text-secondary: #8FE0E4;
+    --text-muted: #4C7885;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(89, 214, 220, 0.22);
+    --accent-purple: #A3E6EA;
+    --accent-purple-glow: rgba(163, 230, 234, 0.18);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(251, 191, 90, 0.22);
+    --accent-red: #EF4444;
+
+    --select-bg: #153847;
+    --select-text: #EAF7F2;
+    --select-active: #1D4656;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
+  /* --- Palette: day, Harbor Blue ---
+     A straighter, more saturated blue than Midnight Steel takes terracotta's
+     job; olive stays a warm gold for contrast. */
+  body.palette-harbor {
+    color-scheme: light;
+
+    --paper: #EEF2FA;
+    --card: #FFFFFF;
+    --line: #D7E0F2;
+    --rule: #DBE4F5;
+    --btn-face: #E3EAF8;
+    --terracotta: #2F5AA8;
+    --terracotta-deep: #24447F;
+    --terracotta-wash: rgba(47, 90, 168, 0.10);
+    --rosette: rgba(47, 90, 168, 0.18);
+    --olive: #9C6A0A;
+    --track: #DDE6F7;
+    --paper-shadow: 0 2px 18px rgba(16, 32, 58, 0.08);
+    --shadow-btn: 0 1px 3px rgba(16, 32, 58, 0.14);
+    --shadow-lift: 0 10px 30px rgba(16, 32, 58, 0.16);
+    --scrim: rgba(16, 32, 58, 0.35);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #10203A;
+    --text-secondary: #496089;
+    --text-muted: #7FA8E8;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(47, 90, 168, 0.16);
+    --accent-purple: #3767BD;
+    --accent-purple-glow: rgba(55, 103, 189, 0.14);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(156, 106, 10, 0.18);
+    --accent-red: #DC2626;
+
+    --select-bg: #FFFFFF;
+    --select-text: #10203A;
+    --select-active: #DDE6F7;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
+  /* --- Palette: night, Harbor Blue --- */
+  body.palette-harbor.dark-mode {
+    color-scheme: dark;
+
+    --paper: #0F1F33;
+    --card: #14294A;
+    --line: #1C3660;
+    --rule: #1F3A68;
+    --btn-face: #182E52;
+    --terracotta: #7FA8E8;
+    --terracotta-deep: #5C85C9;
+    --terracotta-wash: rgba(127, 168, 232, 0.16);
+    --rosette: rgba(127, 168, 232, 0.24);
+    --olive: #F0B94F;
+    --track: #1A3358;
+    --paper-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+    --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 12px 34px rgba(0, 0, 0, 0.6);
+    --scrim: rgba(0, 0, 0, 0.6);
+
+    --bg-primary: var(--paper);
+    --bg-secondary: var(--card);
+    --bg-gradient: var(--paper);
+    --panel-bg: var(--card);
+    --panel-border: var(--line);
+
+    --text-primary: #EEF2FA;
+    --text-secondary: #AEC4EE;
+    --text-muted: #5876AB;
+
+    --accent-cyan: var(--terracotta);
+    --accent-cyan-glow: rgba(127, 168, 232, 0.22);
+    --accent-purple: #B9CDF2;
+    --accent-purple-glow: rgba(185, 205, 242, 0.18);
+    --accent-gold: var(--olive);
+    --accent-gold-glow: rgba(240, 185, 79, 0.22);
+    --accent-red: #EF4444;
+
+    --select-bg: #14294A;
+    --select-text: #EEF2FA;
+    --select-active: #1C3660;
+
+    --card-shadow: var(--paper-shadow);
+  }
+
   /* --- Typography ---
      Nothing here any more. The phone block used to restate the whole type
      system because the desktop layout was set in a different family; both now
@@ -2951,6 +3395,17 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
      Moss & Sage's night wants the gold, same reasoning as above. */
   body.palette-moss:not(.dark-mode) .scale-note {
     color: #000000;
+  }
+
+  /* The three blue palettes by day are a third case: their --olive is a
+     golden-brown, kept as the accent-gold token for badges and chips, but on
+     the dial it read as an off-theme gold sitting on top of an otherwise all-
+     blue interface. Their own accent blue (--terracotta) here instead - night
+     already gets white from the rule above, so this is day only. */
+  body.palette-midnight:not(.dark-mode) .scale-note,
+  body.palette-deepocean:not(.dark-mode) .scale-note,
+  body.palette-harbor:not(.dark-mode) .scale-note {
+    color: var(--terracotta);
   }
 
   .scale-freq {

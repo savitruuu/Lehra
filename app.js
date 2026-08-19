@@ -1868,6 +1868,28 @@ function loadAnalyticsDashboard() {
 }
 
 
+// Every non-default palette, and the body class it lives behind (see
+// style.css/initSettings). "default" needs no class - it's what's left once
+// the others are removed.
+const PALETTE_CLASSES = {
+  moss: "palette-moss",
+  midnight: "palette-midnight",
+  deepocean: "palette-deepocean",
+  harbor: "palette-harbor"
+};
+
+function applyPalette(value) {
+  Object.values(PALETTE_CLASSES).forEach(cls => document.body.classList.remove(cls));
+  const cls = PALETTE_CLASSES[value];
+  if (cls) document.body.classList.add(cls);
+}
+
+function currentPalette() {
+  return Object.keys(PALETTE_CLASSES).find(
+    key => document.body.classList.contains(PALETTE_CLASSES[key])
+  ) || "default";
+}
+
 // --- Settings configuration values ---
 function initSettings() {
   const saveBtn = document.getElementById("settings-save-btn");
@@ -1876,7 +1898,7 @@ function initSettings() {
 
   // Load current theme state
   themeToggle.checked = document.body.classList.contains("dark-mode");
-  paletteSelect.value = document.body.classList.contains("palette-moss") ? "moss" : "default";
+  paletteSelect.value = currentPalette();
 
   themeToggle.addEventListener("change", (e) => {
     if (e.target.checked) {
@@ -1887,7 +1909,7 @@ function initSettings() {
   });
 
   paletteSelect.addEventListener("change", (e) => {
-    document.body.classList.toggle("palette-moss", e.target.value === "moss");
+    applyPalette(e.target.value);
   });
 
   saveBtn.addEventListener("click", () => {
@@ -1924,9 +1946,8 @@ function loadSettingsDefaults() {
     document.body.classList.toggle("dark-mode", dark);
     document.getElementById("settings-theme-toggle").checked = dark;
 
-    const moss = config.palette === "moss";
-    document.body.classList.toggle("palette-moss", moss);
-    document.getElementById("settings-palette-select").value = moss ? "moss" : "default";
+    applyPalette(config.palette);
+    document.getElementById("settings-palette-select").value = currentPalette();
 
     // Set player defaults
     if (config.taal) {

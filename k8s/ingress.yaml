@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lehra-ingress
+  namespace: lehra
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # If using cert-manager, uncomment the line below to auto-provision TLS certs:
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+  - host: lehra.example.com  # REPLACE with your domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lehra-service
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - lehra.example.com  # REPLACE with your domain
+    secretName: lehra-tls-secret
