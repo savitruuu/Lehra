@@ -297,14 +297,26 @@ export function PlayerProvider({ children }) {
   // matra 0 (see _ensureSchedulerRunning in audio.js), so the avartan count and
   // the matra clock always begin together. Adding the tabla or the click to
   // something already running leaves the count alone.
+  //
+  // The session clock hangs off the same edge, and for the same reason it has
+  // to: transportRunning is lehra OR click OR tabla, so anything that can put
+  // the screensaver on screen must also be able to start the clock behind it.
+  // Driving it from the individual buttons instead left the tabla's own button
+  // and the metronome starting a session the clock never counted - the
+  // screensaver would take over and sit at 0:00.
   useEffect(() => {
-    if (transportRunning && !transportWasRunningRef.current) {
+    const wasRunning = transportWasRunningRef.current;
+    if (transportRunning && !wasRunning) {
       avartanSamsRef.current = 0;
       setAvartanCount(0);
+      startPracticeClock();
+    } else if (!transportRunning && wasRunning) {
+      // Banks the stretch to the practice log on the way down.
+      stopPracticeClock();
     }
     transportWasRunningRef.current = transportRunning;
     noteActivity();
-  }, [transportRunning, noteActivity]);
+  }, [transportRunning, noteActivity, startPracticeClock, stopPracticeClock]);
 
   useEffect(() => () => clearTimeout(screensaverTimerRef.current), []);
 
@@ -324,13 +336,11 @@ export function PlayerProvider({ children }) {
       // The tanpura is independent - it keeps droning unless the user stops it
       // from its own button.
       AudioEngine.stop();
-      stopPracticeClock();
     } else {
       AudioEngine.start();
-      startPracticeClock();
     }
     syncPlaying();
-  }, [startPracticeClock, stopPracticeClock, syncPlaying]);
+  }, [syncPlaying]);
 
   const toggleTabla = useCallback(async () => {
     if (AudioEngine.tablaIsPlaying) {
@@ -376,33 +386,28 @@ export function PlayerProvider({ children }) {
     if (tablaMode) {
       if (AudioEngine.tablaIsPlaying) {
         AudioEngine.stopTabla();
-        stopPracticeClock();
         syncPlaying();
       } else {
         setTablaBusy(true);
         const started = await AudioEngine.startTabla();
         setTablaBusy(false);
         setTablaLoadFailed(!started);
-        if (started) startPracticeClock();
         syncPlaying();
       }
       return;
     }
     toggleLehra();
-  }, [tablaMode, toggleLehra, startPracticeClock, stopPracticeClock, syncPlaying]);
+  }, [tablaMode, toggleLehra, syncPlaying]);
 
   /** Stops every transport at once - lehra, tanpura, metronome and tabla. */
   const stopAllTransports = useCallback(() => {
-    if (AudioEngine.isPlaying) {
-      AudioEngine.stop();
-      stopPracticeClock();
-    }
+    if (AudioEngine.isPlaying) AudioEngine.stop();
     if (AudioEngine.tanpuraPlaying) AudioEngine.stopTanpura();
     if (AudioEngine.metronomeIsPlaying) AudioEngine.stopMetronome();
     if (AudioEngine.tablaIsPlaying) AudioEngine.stopTabla();
     setTanpuraFallback(false);
     syncPlaying();
-  }, [stopPracticeClock, syncPlaying]);
+  }, [syncPlaying]);
 
   /**
    * Crossing into or out of accompaniment mode.
