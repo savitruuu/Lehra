@@ -3382,16 +3382,15 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
     border-right: 1px solid var(--rule);
   }
 
-  /* Dotted between the named selections on the left, where the rows are three
-     variations on the same kind of thing and want tying together; nothing at all
-     between the levels on the right, where each slider already reads as its own
-     block and a rule would only add noise. */
-  #picker-section > * + * {
-    border-top: 1px dashed var(--rule);
-  }
-
+  /* Dotted between the rows of both columns. The right column went without one
+     at first, on the reasoning that a slider already reads as its own block -
+     but the card is ruled down the middle and the left column is ruled across,
+     so leaving the right open made the two halves look misaligned rather than
+     uncluttered: the eye reads the rule on the left as a row boundary and then
+     finds nothing holding the right to it. */
+  #picker-section > * + *,
   #mixer-section > * + * {
-    border-top: 0;
+    border-top: 1px dashed var(--rule);
   }
 
   /* Left column: name, current value, chevron. No icons - the words are shorter
