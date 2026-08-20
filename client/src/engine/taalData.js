@@ -286,6 +286,17 @@ const TAAL_DATA = {
     tali_positions:  [1, 5, 13],
     khali_positions: [9],
     theka: ["Dha","Dhin","Dhin","Dha","Dha","Dhin","Dhin","Dha","Dha","Tin","Tin","Ta","Ta","Dhin","Dhin","Dha"],
+
+    // Sound-only overrides, keyed by matra index (0-based, so 9 is matra 10).
+    // The theka above stays the notation - it is what the taal information
+    // section and the chakra read - and this only changes the stroke the tabla
+    // is given for that matra.
+    //
+    // Matra 10 opens the khali vibhaag and is written Tin, but it is played
+    // here as Tun: the open dayan rings where the Tin above it is closed, which
+    // is what makes the khali audible without the bayan to mark it.
+    thekaSound: { 9: "Tun" },
+
     get lehra() { return buildTaalLehra(this.matras); }
   },
   jhaptaal: {

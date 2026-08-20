@@ -1359,7 +1359,12 @@ class LehraAudioEngine {
     const taal = TAAL_DATA[this.activeTaalKey];
     if (!taal || !taal.theka) return;
 
-    const bol = taal.theka[matraIndex % taal.theka.length];
+    // The notation is taal.theka; thekaSound, where a taal has one, replaces
+    // the stroke for that matra without touching what is written - Teentaal's
+    // matra 10 reads Tin and is played Tun. Sparse and optional, so a taal
+    // without it is unaffected.
+    const matra = matraIndex % taal.theka.length;
+    const bol = taal.thekaSound?.[matra] ?? taal.theka[matra];
     const beatDuration = 60.0 / this.bpm;
 
     // Read here rather than on the change event: the scale selector writes
