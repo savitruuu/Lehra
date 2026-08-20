@@ -64,7 +64,7 @@ export function Screensaver() {
           {/* Tempo and session length, shown only while the screensaver holds
               the screen: with every other control out of sight, these are the
               two readings a player still wants. */}
-          <div className="screensaver-readout">{bpm} BPM</div>
+          <div className="screensaver-readout screensaver-tempo">{bpm} BPM</div>
           <div className="beat-number">{beat.matraNumber}</div>
           {/* Only the tabla bol - Sam, tali and khali are already carried by
               the vibhaag markers below. A non-breaking space when a taal has no
@@ -88,7 +88,7 @@ export function Screensaver() {
               </div>
             ))}
           </div>
-          <div className="screensaver-readout">
+          <div className="screensaver-readout screensaver-time">
             {mins}:{String(secs).padStart(2, "0")}
           </div>
         </div>

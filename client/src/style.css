@@ -2504,13 +2504,19 @@ input:checked + .slider-switch:before {
   /* Pushed well clear of the matra number and the markers: the gap is what
      keeps the centre reading as the beat with two notes around it, rather than
      one four-line stack. Scaled off the ring so it opens up on a big screen
-     without crowding the arc on a small one. */
-  .screensaver #screensaver-tempo {
+     without crowding the arc on a small one.
+
+     Classes rather than ids. These were written as #screensaver-tempo and
+     #screensaver-time against the pre-MERN markup, and the React Screensaver
+     carries no ids - so both gaps silently stopped applying and the readouts,
+     the matra and the markers closed up into the single stack this rule exists
+     to prevent. */
+  .screensaver .screensaver-tempo {
     margin-bottom: clamp(20px, min(7vw, 7vh), 44px);
   }
 
-  .screensaver #screensaver-time {
-    margin-top: clamp(20px, min(7vw, 7vh), 44px);
+  .screensaver .screensaver-time {
+    margin-top: clamp(24px, min(8vw, 8vh), 48px);
     font-variant-numeric: tabular-nums;
   }
 }
