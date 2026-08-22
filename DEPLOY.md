@@ -1,8 +1,11 @@
 # Deploying Lehra
 
-The app is static — eight source files and a directory of mp3s. The container is
-nginx serving them; there is no server-side code, no database and no state, so
-the container is disposable and can scale to zero between sessions.
+The client (`client/`) is a React app built with Vite; the container is nginx
+serving the built output plus the audio directory. There is no server-side
+code, no database and no state in this container, so it is disposable and can
+scale to zero between sessions. The accounts API (`server/`) is a separate
+service — see the commented-out `lehra-api` entry in `render.yaml` and
+[MERN.md](MERN.md) — and is optional; nothing here depends on it.
 
 Image size is roughly 60 MB: about 54 MB of that is `nginx:1.27-alpine` and
 6.8 MB is the app, nearly all of it audio.

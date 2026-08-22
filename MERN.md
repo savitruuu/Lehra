@@ -1,8 +1,8 @@
 # Lehra as a MERN app
 
-The app is now a React frontend (`client/`) and an Express + MongoDB API
-(`server/`). The original single-page version is still in the repository root
-and still runs; nothing below replaces it yet.
+The app is a React frontend (`client/`) and an Express + MongoDB API
+(`server/`). The original single-page version has been fully replaced and
+moved to `Non-MERN/` for reference; it is not built or deployed anymore.
 
 ## What the server is for, and what it is not for
 
