@@ -116,7 +116,7 @@ services:
       - key: COOKIE_SECURE
         value: "true"        # Render terminates TLS, so the cookie must be Secure
       - key: CLIENT_ORIGIN
-        value: https://lehra.onrender.com
+        value: https://lehra-h33n.onrender.com
 
       # SMTP for the signup verification email - see server/.env.example for
       # what each one means and how to get a Gmail app password. Left unset,
