@@ -21,7 +21,6 @@ services:
     runtime: static
     buildCommand: cd client && npm ci && npm run build
     staticPublishPath: ./client/dist
-    region: singapore
     autoDeploy: true
 
     envVars:
