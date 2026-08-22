@@ -10,9 +10,12 @@ export function issueSession(res, user) {
 
   res.cookie(SESSION_COOKIE, token, {
     httpOnly: true,
-    // Lax rather than Strict: the session should survive following a link back
-    // into the app, and the API is same-site with the client either way.
-    sameSite: "lax",
+    // "lax" in development, where the client reaches the API through Vite's
+    // same-origin proxy. In production the client is a static site and the
+    // API a separate Render service on a different hostname - genuinely
+    // cross-site - so that request only carries the cookie if this is "none",
+    // which in turn requires `secure`. See COOKIE_SAMESITE in render.yaml.
+    sameSite: config.cookieSameSite,
     secure: config.cookieSecure,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     path: "/"

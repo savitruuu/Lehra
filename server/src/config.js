@@ -25,6 +25,9 @@ export const config = {
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "30d",
   cookieSecure: process.env.COOKIE_SECURE === "true",
+  // "none" requires cookieSecure to also be true - browsers reject a
+  // SameSite=None cookie that isn't Secure.
+  cookieSameSite: process.env.COOKIE_SAMESITE || "lax",
   isProduction: process.env.NODE_ENV === "production",
 
   // SMTP for the signup OTP email. Unset in development is fine - the mailer

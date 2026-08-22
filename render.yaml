@@ -29,30 +29,30 @@ services:
       - key: NODE_VERSION
         value: "22"
 
+      # Baked into the build, not read at runtime - a static site has no
+      # runtime. This is what points client/src/lib/api.js at lehra-api
+      # instead of a relative /api path.
+      #
+      # A same-origin proxy (rewriting /api/* on this static site through to
+      # lehra-api) was the first attempt here and does not work: Render's
+      # static-site `routes` rewrite only rewrites to paths within the same
+      # site, and proxying to a different service's URL is a `redirect`
+      # (a 3xx sending the browser to a new origin), not a `rewrite` - so a
+      # POST to /api/... 404s instead of reaching the API. Pointing the client
+      # straight at the API's own URL and accepting a cross-site cookie
+      # (COOKIE_SAMESITE=none below, on lehra-api) is what actually works.
+      #
+      # This value has to match lehra-api's real URL below. If you rename
+      # that service or it lands on a different *.onrender.com subdomain than
+      # expected, update this - a stale value here fails as a CORS error in
+      # the browser console, not a build error.
+      - key: VITE_API_URL
+        value: https://lehra-api.onrender.com
+
     # Deliberately no catch-all rewrite to /index.html. The app has no router -
     # "/" is the only page - so a rewrite would buy nothing and would cost real
     # error handling: a missing mp3 would come back as an HTML document with a
     # 200, and the audio loader would report a decode failure instead of a 404.
-    #
-    # /api/* is a real proxy rule, not a rewrite to a local file: its
-    # destination is another service's full URL, so Render forwards the
-    # request there and streams the response back. This is what lets the
-    # client's plain `fetch("/api/...")` reach lehra-api even though it is a
-    # separate Render service on a separate hostname - from the browser's
-    # perspective every request still lands on lehra's own origin, so the
-    # session cookie stays an ordinary same-site cookie instead of needing
-    # SameSite=None and the CORS surface that comes with it.
-    #
-    # The hostname below assumes the API service below is named "lehra-api"
-    # and left on Render's default *.onrender.com domain. If you rename it or
-    # attach a custom domain, update this to match - a stale destination here
-    # fails as silently as a wrong CLIENT_ORIGIN does, as 404s on every /api
-    # call rather than a deploy error.
-    routes:
-      - type: rewrite
-        source: /api/*
-        destination: https://lehra-api.onrender.com/api/:splat
-
     headers:
       # Hashed bundles: a changed file is a changed URL, so a cached one can
       # never be the wrong version. That is what makes a year safe.
@@ -90,13 +90,14 @@ services:
 
   # The accounts API. Sign-in is mandatory now - the client cannot function
   # without this - so unlike when this block was optional, a deploy of `lehra`
-  # without `lehra-api` reachable at the URL the rewrite rule above points to
-  # is a broken deploy, not a degraded one.
+  # without `lehra-api` reachable at VITE_API_URL above is a broken deploy,
+  # not a degraded one.
   #
-  # A static site cannot host this; it needs its own Web Service, which is
-  # why it is a second entry here rather than a build step of the first. The
-  # rewrite rule above is what lets the client's same-origin `fetch("/api/...")`
-  # reach it despite that.
+  # A static site cannot host this; it needs its own Web Service, which is why
+  # it is a second entry here rather than a build step of the first - and
+  # because the two are genuinely separate origins, the session cookie has to
+  # be told so explicitly (COOKIE_SAMESITE below) rather than being able to
+  # pretend they're one site the way a same-origin proxy would allow.
   - type: web
     name: lehra-api
     runtime: node
@@ -115,6 +116,8 @@ services:
         sync: false
       - key: COOKIE_SECURE
         value: "true"        # Render terminates TLS, so the cookie must be Secure
+      - key: COOKIE_SAMESITE
+        value: "none"        # lehra and lehra-api are different origins; requires Secure above
       - key: CLIENT_ORIGIN
         value: https://lehra-h33n.onrender.com
 

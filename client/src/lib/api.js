@@ -4,7 +4,15 @@
  * Everything it can reach is under /api/auth. Practice logs and settings have
  * no function here and must not gain one - see the note at the top of
  * practiceLog.js.
+ *
+ * The API is same-origin in development (Vite proxies /api, see
+ * vite.config.js) but a genuinely separate Render service in production - a
+ * static site cannot run the rewrite-to-another-service trick Netlify-style
+ * hosts offer, so production instead points straight at the API's own URL and
+ * relies on CORS + a SameSite=None cookie. VITE_API_URL is baked in at build
+ * time; see render.yaml.
  */
+const API_ORIGIN = import.meta.env.VITE_API_URL || "";
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -19,7 +27,7 @@ class ApiError extends Error {
 }
 
 async function request(path, { method = "GET", body } = {}) {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API_ORIGIN}/api${path}`, {
     method,
     headers: body ? { "Content-Type": "application/json" } : undefined,
     // The session is an httpOnly cookie, so it has to be sent explicitly.
