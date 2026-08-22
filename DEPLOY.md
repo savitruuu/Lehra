@@ -3,9 +3,16 @@
 The client (`client/`) is a React app built with Vite; the container is nginx
 serving the built output plus the audio directory. There is no server-side
 code, no database and no state in this container, so it is disposable and can
-scale to zero between sessions. The accounts API (`server/`) is a separate
-service — see the commented-out `lehra-api` entry in `render.yaml` and
-[MERN.md](MERN.md) — and is optional; nothing here depends on it.
+scale to zero between sessions.
+
+**Sign-in is mandatory**, so this container alone is not a working deploy —
+the accounts API (`server/`) must also be running and reachable at `/api/*`.
+On Render, `render.yaml` runs both as separate services and proxies `/api/*`
+from the static site to `lehra-api`; see the `lehra-api` entry there and
+[MERN.md](MERN.md) for what it needs (`MONGODB_URI`, `JWT_SECRET`, and the
+`SMTP_*` vars for the signup verification email). Deploying this container on
+its own, with no API behind `/api/*`, leaves every user stuck at the sign-in
+screen.
 
 Image size is roughly 60 MB: about 54 MB of that is `nginx:1.27-alpine` and
 6.8 MB is the app, nearly all of it audio.

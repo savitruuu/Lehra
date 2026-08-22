@@ -34,6 +34,26 @@ services:
     # "/" is the only page - so a rewrite would buy nothing and would cost real
     # error handling: a missing mp3 would come back as an HTML document with a
     # 200, and the audio loader would report a decode failure instead of a 404.
+    #
+    # /api/* is a real proxy rule, not a rewrite to a local file: its
+    # destination is another service's full URL, so Render forwards the
+    # request there and streams the response back. This is what lets the
+    # client's plain `fetch("/api/...")` reach lehra-api even though it is a
+    # separate Render service on a separate hostname - from the browser's
+    # perspective every request still lands on lehra's own origin, so the
+    # session cookie stays an ordinary same-site cookie instead of needing
+    # SameSite=None and the CORS surface that comes with it.
+    #
+    # The hostname below assumes the API service below is named "lehra-api"
+    # and left on Render's default *.onrender.com domain. If you rename it or
+    # attach a custom domain, update this to match - a stale destination here
+    # fails as silently as a wrong CLIENT_ORIGIN does, as 404s on every /api
+    # call rather than a deploy error.
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://lehra-api.onrender.com/api/:splat
+
     headers:
       # Hashed bundles: a changed file is a changed URL, so a cached one can
       # never be the wrong version. That is what makes a year safe.
@@ -69,30 +89,49 @@ services:
         name: Referrer-Policy
         value: strict-origin-when-cross-origin
 
-  # The accounts API. Commented out rather than deleted: it needs MONGODB_URI
-  # and JWT_SECRET set as secrets in the dashboard before it can start, and the
-  # app deliberately works without it - accounts are optional and no screen uses
-  # them yet. Uncomment when there is a login UI to serve.
+  # The accounts API. Sign-in is mandatory now - the client cannot function
+  # without this - so unlike when this block was optional, a deploy of `lehra`
+  # without `lehra-api` reachable at the URL the rewrite rule above points to
+  # is a broken deploy, not a degraded one.
   #
-  # A static site cannot host this; it needs its own Web Service. The client
-  # calls /api/..., so either put the two behind one domain or set CLIENT_ORIGIN
-  # and point the client at the API's URL.
-  #
-  # - type: web
-  #   name: lehra-api
-  #   runtime: node
-  #   rootDir: server
-  #   buildCommand: npm ci
-  #   startCommand: npm start
-  #   region: singapore
-  #   plan: free
-  #   healthCheckPath: /healthz
-  #   envVars:
-  #     - key: MONGODB_URI
-  #       sync: false          # set in the dashboard; never commit it
-  #     - key: JWT_SECRET
-  #       sync: false
-  #     - key: COOKIE_SECURE
-  #       value: "true"        # Render terminates TLS, so the cookie must be Secure
-  #     - key: CLIENT_ORIGIN
-  #       value: https://lehra.onrender.com
+  # A static site cannot host this; it needs its own Web Service, which is
+  # why it is a second entry here rather than a build step of the first. The
+  # rewrite rule above is what lets the client's same-origin `fetch("/api/...")`
+  # reach it despite that.
+  - type: web
+    name: lehra-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm start
+    region: singapore
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      # Atlas, or any MongoDB reachable from Render - Render does not host
+      # Mongo itself. Set in the dashboard; never commit it.
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"        # Render terminates TLS, so the cookie must be Secure
+      - key: CLIENT_ORIGIN
+        value: https://lehra.onrender.com
+
+      # SMTP for the signup verification email - see server/.env.example for
+      # what each one means and how to get a Gmail app password. Left unset,
+      # OTPs are written to this service's Render logs instead of emailed,
+      # which is a fine way to confirm the rest of the deploy works before
+      # SMTP is wired up, but is not a state to leave production in - anyone
+      # who can read the logs can read every code.
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
