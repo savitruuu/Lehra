@@ -23,7 +23,19 @@ export function issueSession(res, user) {
 }
 
 export function clearSession(res) {
-  res.clearCookie(SESSION_COOKIE, { path: "/" });
+  // Must repeat the exact attributes issueSession set the cookie with -
+  // sameSite and secure included. In production the cookie is SameSite=None;
+  // Secure (cross-site, the client and API are different Render hosts); a
+  // clearing Set-Cookie without those attributes is a different cookie as far
+  // as the browser is concerned and can be dropped or ignored outright, which
+  // leaves the original session cookie live - signed out in React state, but
+  // still authenticated on the next request.
+  res.clearCookie(SESSION_COOKIE, {
+    httpOnly: true,
+    sameSite: config.cookieSameSite,
+    secure: config.cookieSecure,
+    path: "/"
+  });
 }
 
 /**
