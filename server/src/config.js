@@ -25,7 +25,18 @@ export const config = {
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "30d",
   cookieSecure: process.env.COOKIE_SECURE === "true",
-  isProduction: process.env.NODE_ENV === "production"
+  isProduction: process.env.NODE_ENV === "production",
+
+  // SMTP for the signup OTP email. Unset in development is fine - the mailer
+  // logs the code to the console instead of sending, so the flow is testable
+  // without real credentials.
+  smtp: {
+    host: process.env.SMTP_HOST || null,
+    port: Number(process.env.SMTP_PORT || 587),
+    user: process.env.SMTP_USER || null,
+    pass: process.env.SMTP_PASS || null,
+    from: process.env.SMTP_FROM || "Lehra <no-reply@lehra.app>"
+  }
 };
 
 /** Name of the httpOnly cookie the session token rides in. */

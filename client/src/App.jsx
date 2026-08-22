@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 
 import { UIProvider, useUI } from "./ui/UIContext.jsx";
 import { PlayerProvider, usePlayer } from "./player/PlayerContext.jsx";
-import { AuthProvider } from "./auth/AuthContext.jsx";
+import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
+import { AuthGate } from "./auth/AuthGate.jsx";
 
 import { Drawer, MobileHeader, MobileNav } from "./components/Navigation.jsx";
 import { TilePicker } from "./components/TilePicker.jsx";
@@ -19,12 +20,24 @@ import { SettingsScreen } from "./screens/SettingsScreen.jsx";
 export default function App() {
   return (
     <AuthProvider>
-      <UIProvider>
-        <PlayerProvider>
-          <Shell />
-        </PlayerProvider>
-      </UIProvider>
+      <Gate />
     </AuthProvider>
+  );
+}
+
+// Signing in is mandatory: Shell - and the PlayerProvider that owns the
+// AudioContext - does not mount until a session exists, so nothing about the
+// player's own state has to account for a signed-out user.
+function Gate() {
+  const { user } = useAuth();
+  if (!user) return <AuthGate />;
+
+  return (
+    <UIProvider>
+      <PlayerProvider>
+        <Shell />
+      </PlayerProvider>
+    </UIProvider>
   );
 }
 

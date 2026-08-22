@@ -23,8 +23,9 @@ import {
  * open with next time, so they wait for Save.
  *
  * Everything here is written to this browser's localStorage. The account
- * section below is the exception - it talks to the API - but nothing else on
- * this screen, or anywhere else in the app, is gated on being signed in.
+ * section below is the exception - it talks to the API - but the practice
+ * log, the player defaults and every other setting still live entirely in
+ * the browser regardless of who is signed in.
  */
 export function SettingsScreen({ active }) {
   const [settings, setSettings] = useState(loadSettings);
@@ -136,9 +137,6 @@ export function SettingsScreen({ active }) {
       </div>
 
       <h2 style={{ fontWeight: 700, marginTop: 32 }}>Account</h2>
-      <p style={{ color: "var(--text-secondary)", marginTop: -20 }}>
-        Optional. Sign in to keep your account on file for what's coming next.
-      </p>
       <AccountPanel />
     </section>
   );

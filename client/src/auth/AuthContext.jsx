@@ -4,15 +4,13 @@ import { api } from "../lib/api.js";
 /**
  * Who is signed in, if anyone.
  *
- * Accounts are optional by design: the player, the practice log and every
- * setting work exactly the same signed out, and nothing in the app is gated on
- * `user`. This context exists so that the login screens - and, later, billing -
- * have somewhere to read from; until those are built, the only visible effect
- * of being signed in is that the server has a `lastLoginAt` for you.
+ * Signing in is mandatory to reach the app - see AuthGate, which is what
+ * actually reads `user` to decide whether to render Shell or the gate. This
+ * context only holds the session state and the calls that change it.
  *
  * `status` distinguishes "we have not asked the server yet" from "we asked and
- * nobody is signed in", which matters once there is UI that would otherwise
- * flash a signed-out state on every load.
+ * nobody is signed in", which matters so AuthGate doesn't flash the sign-in
+ * form for a moment before a valid session is confirmed.
  */
 const AuthContext = createContext(null);
 
@@ -48,11 +46,21 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  // Does not sign in - the account exists but is unverified until the OTP
+  // this triggers is confirmed. Returns the email so the caller can move to
+  // the verification screen without asking the user to retype it.
   const signup = useCallback(async (email, password, name) => {
     const data = await api.signup(email, password, name);
+    return data.pendingEmail;
+  }, []);
+
+  const verifyOtp = useCallback(async (email, code) => {
+    const data = await api.verifyOtp(email, code);
     setUser(data.user);
     return data.user;
   }, []);
+
+  const resendOtp = useCallback((email) => api.resendOtp(email), []);
 
   const logout = useCallback(async () => {
     await api.logout();
@@ -60,7 +68,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, status, login, signup, logout }}>
+    <AuthContext.Provider
+      value={{ user, status, login, signup, verifyOtp, resendOtp, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

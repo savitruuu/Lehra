@@ -301,6 +301,23 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* Auth gate - shown instead of .app-container until a session exists. */
+.auth-gate {
+  width: 95%;
+  max-width: 420px;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-card {
+  width: 100%;
+  padding: 32px 28px;
+}
+
+.auth-card .btn-group .btn {
+  flex: 1;
+}
+
 /* App Container */
 .app-container {
   width: 95%;

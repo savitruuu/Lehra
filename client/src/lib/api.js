@@ -7,10 +7,14 @@
  */
 
 class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, data) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    // The full body, so a caller that needs more than the message - e.g.
+    // login's needsVerification/pendingEmail flags - doesn't need a second
+    // ad-hoc error shape.
+    this.data = data;
   }
 }
 
@@ -34,7 +38,8 @@ async function request(path, { method = "GET", body } = {}) {
   if (!res.ok) {
     throw new ApiError(
       data?.error || "Could not reach the server. Check your connection.",
-      res.status
+      res.status,
+      data
     );
   }
   return data;
@@ -45,6 +50,9 @@ export const api = {
     request("/auth/signup", { method: "POST", body: { email, password, name } }),
   login: (email, password) =>
     request("/auth/login", { method: "POST", body: { email, password } }),
+  verifyOtp: (email, code) =>
+    request("/auth/verify-otp", { method: "POST", body: { email, code } }),
+  resendOtp: (email) => request("/auth/resend-otp", { method: "POST", body: { email } }),
   logout: () => request("/auth/logout", { method: "POST" }),
   me: () => request("/auth/me")
 };
