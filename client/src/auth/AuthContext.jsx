@@ -46,12 +46,10 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
-  // Does not sign in - the account exists but is unverified until the OTP
-  // this triggers is confirmed. Returns the email so the caller can move to
-  // the verification screen without asking the user to retype it.
   const signup = useCallback(async (email, password, name) => {
     const data = await api.signup(email, password, name);
-    return data.pendingEmail;
+    setUser(data.user);
+    return data.user;
   }, []);
 
   const verifyOtp = useCallback(async (email, code) => {

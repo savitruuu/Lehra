@@ -53,10 +53,12 @@ function validateCredentials({ email, password, name }, { needName }) {
 }
 
 /**
- * Signup creates the account and emails a code, but does not sign in - a
- * session is only issued once /verify-otp confirms the email is real. The
- * client is expected to move straight to an OTP screen with the email this
- * returns.
+ * Signup creates the account and signs in immediately.
+ *
+ * Email verification (OTP) is wired up below but disabled for now - Render's
+ * free plan blocks outbound SMTP, so a verification step nobody can complete
+ * would leave every signup stuck. `emailVerified` is set true directly
+ * instead of waiting on /verify-otp.
  */
 authRouter.post("/signup", credentialLimiter, async (req, res, next) => {
   try {
@@ -71,13 +73,13 @@ authRouter.post("/signup", credentialLimiter, async (req, res, next) => {
         .json({ error: "That email is already registered. Sign in instead." });
     }
 
-    const user = new User({ email: normalised, name: String(name).trim() });
+    const user = new User({ email: normalised, name: String(name).trim(), emailVerified: true });
     await user.setPassword(String(password));
-    const code = await user.issueOtp();
+    user.lastLoginAt = new Date();
     await user.save();
-    await sendOtpEmail(normalised, code);
 
-    res.status(201).json({ pendingEmail: normalised });
+    issueSession(res, user);
+    res.status(201).json({ user: user.toPublicJSON() });
   } catch (err) {
     next(err);
   }
@@ -153,20 +155,6 @@ authRouter.post("/login", credentialLimiter, async (req, res, next) => {
     const ok = user && (await user.verifyPassword(String(password)));
     if (!ok) {
       return res.status(401).json({ error: "Email or password is incorrect." });
-    }
-
-    if (!user.emailVerified) {
-      // Email enumeration is already possible via the signup 409 above, so
-      // naming the account here trades nothing away - and the client needs
-      // to know to route to the OTP screen rather than just show an error.
-      const code = await user.issueOtp();
-      await user.save();
-      await sendOtpEmail(normalised, code);
-      return res.status(403).json({
-        error: "Verify your email to sign in. We've sent a new code.",
-        needsVerification: true,
-        pendingEmail: normalised
-      });
     }
 
     user.lastLoginAt = new Date();

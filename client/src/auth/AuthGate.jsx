@@ -1,8 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthContext.jsx";
 import { ApiError } from "../lib/api.js";
+import { BrandMark } from "../components/Navigation.jsx";
+import { loadSettings, saveSettings, applyTheme, PALETTE_OPTIONS } from "../lib/settings.js";
 
 const RESEND_COOLDOWN_S = 30;
+
+/** A swatch colour per palette, for the picker - the accent each one paints
+    buttons and links with, night variant since that is the shipped default. */
+const PALETTE_SWATCHES = {
+  default: "#D2603B",
+  moss: "#89d7b7",
+  midnight: "#7c8798",
+  deepocean: "#59d6dc"
+};
 
 /**
  * Everything between opening the app and reaching Shell.
@@ -29,11 +40,17 @@ export function AuthGate() {
 
   return (
     <div className="auth-gate">
-      <div className="auth-card glass-panel">
-        <h1 style={{ fontWeight: 700, margin: 0 }}>Lehra</h1>
-        <p style={{ color: "var(--text-secondary)", marginTop: 4, marginBottom: 24 }}>
-          Sign in to start your Riyaaz.
-        </p>
+      <ThemePicker />
+      <div className="auth-card">
+        <div className="auth-brand">
+          <div className="auth-brand-row">
+            <div className="brand-logo auth-brand-logo">
+              <BrandMark size={22} />
+            </div>
+            <h1>Lehra</h1>
+          </div>
+          <p className="auth-subtitle">Sign in to start your Riyaaz.</p>
+        </div>
 
         {mode === "otp" ? (
           <OtpForm
@@ -46,17 +63,21 @@ export function AuthGate() {
           />
         ) : (
           <>
-            <div className="btn-group" style={{ marginBottom: 20 }}>
+            <div className="auth-mode-tabs" role="tablist">
               <button
                 type="button"
-                className={"btn" + (mode === "login" ? " btn-primary" : "")}
+                role="tab"
+                aria-selected={mode === "login"}
+                className={"auth-mode-tab" + (mode === "login" ? " active" : "")}
                 onClick={() => setMode("login")}
               >
                 Sign In
               </button>
               <button
                 type="button"
-                className={"btn" + (mode === "signup" ? " btn-primary" : "")}
+                role="tab"
+                aria-selected={mode === "signup"}
+                className={"auth-mode-tab" + (mode === "signup" ? " active" : "")}
                 onClick={() => setMode("signup")}
               >
                 Create Account
@@ -71,16 +92,94 @@ export function AuthGate() {
                 }}
               />
             ) : (
-              <SignupForm
-                onSignedUp={(email) => {
-                  setPendingEmail(email);
-                  setMode("otp");
-                }}
-              />
+              <SignupForm />
             )}
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Top-right theme/palette control - the one piece of Settings a person might
+    want before they even have an account. Applies and saves immediately,
+    same as the live preview in SettingsScreen. */
+function ThemePicker() {
+  const [settings, setSettings] = useState(loadSettings);
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
+
+  const update = (patch) => {
+    const next = { ...settings, ...patch };
+    setSettings(next);
+    applyTheme(next);
+    saveSettings(next);
+  };
+
+  return (
+    <div className="auth-theme-picker" ref={rootRef}>
+      <button
+        type="button"
+        className="auth-theme-btn"
+        aria-label="Change theme and color palette"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C13.4,22 14.5,20.9 14.5,19.5C14.5,18.83 14.24,18.19 13.77,17.75C13.42,17.4 13.25,16.9 13.25,16.5C13.25,15.62 13.87,15 14.75,15H17C19.76,15 22,12.76 22,10C22,5.58 17.5,2 12,2M6.5,12C5.67,12 5,11.33 5,10.5C5,9.67 5.67,9 6.5,9C7.33,9 8,9.67 8,10.5C8,11.33 7.33,12 6.5,12M9.5,8C8.67,8 8,7.33 8,6.5C8,5.67 8.67,5 9.5,5C10.33,5 11,5.67 11,6.5C11,7.33 10.33,8 9.5,8M14.5,8C13.67,8 13,7.33 13,6.5C13,5.67 13.67,5 14.5,5C15.33,5 16,5.67 16,6.5C16,7.33 15.33,8 14.5,8M17.5,12C16.67,12 16,11.33 16,10.5C16,9.67 16.67,9 17.5,9C18.33,9 19,9.67 19,10.5C19,11.33 18.33,12 17.5,12Z" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="auth-theme-popover">
+          <div className="auth-theme-section">
+            <span className="auth-theme-label">Theme</span>
+            <div className="auth-mode-tabs">
+              <button
+                type="button"
+                className={"auth-mode-tab" + (settings.theme === "light" ? " active" : "")}
+                onClick={() => update({ theme: "light" })}
+              >
+                Light
+              </button>
+              <button
+                type="button"
+                className={"auth-mode-tab" + (settings.theme === "dark" ? " active" : "")}
+                onClick={() => update({ theme: "dark" })}
+              >
+                Dark
+              </button>
+            </div>
+          </div>
+
+          <div className="auth-theme-section">
+            <span className="auth-theme-label">Color Palette</span>
+            <div className="auth-palette-row">
+              {PALETTE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={"auth-palette-swatch" + (settings.palette === opt.value ? " active" : "")}
+                  style={{ background: PALETTE_SWATCHES[opt.value] }}
+                  aria-label={opt.label}
+                  aria-pressed={settings.palette === opt.value}
+                  title={opt.label}
+                  onClick={() => update({ palette: opt.value })}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -138,7 +237,7 @@ function LoginForm({ onNeedsVerification }) {
   );
 }
 
-function SignupForm({ onSignedUp }) {
+function SignupForm() {
   const { signup } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -151,8 +250,7 @@ function SignupForm({ onSignedUp }) {
     setError(null);
     setBusy(true);
     try {
-      const pendingEmail = await signup(email, password, name);
-      onSignedUp(pendingEmail);
+      await signup(email, password, name);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not reach the server. Check your connection.");
     } finally {

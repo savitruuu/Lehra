@@ -301,21 +301,198 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Auth gate - shown instead of .app-container until a session exists. */
+/* #root has no width of its own, so as a flex child of body it shrinks to
+   fit its content - fine for .app-container, which sets its own width, but
+   it left .auth-gate's width: 100% (below) resolving against a collapsed
+   parent instead of the viewport. */
+#root {
+  width: 100%;
+}
+
+/* Auth gate - shown instead of .app-container until a session exists.
+   Full-bleed rather than a card floating on empty ground: on the phone
+   layout (the only one that ships) a small bordered box adrift in the
+   middle of the screen reads as unfinished chrome, not a page. */
 .auth-gate {
-  width: 95%;
-  max-width: 420px;
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
+  align-items: center;
+  padding: 32px 24px;
 }
 
 .auth-card {
   width: 100%;
-  padding: 32px 28px;
 }
 
-.auth-card .btn-group .btn {
+/* Above phone width, full-bleed inputs and a button spanning the whole
+   window read as a mistake, not a design - the phone layout is the only one
+   the rest of the app ships, but this screen is reachable at any width, so
+   it gets its own breakpoint back. */
+@media (min-width: 640px) {
+  .auth-card {
+    max-width: 400px;
+    padding: 36px 32px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+  }
+}
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+.auth-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-brand-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.auth-brand-logo svg {
+  width: 20px;
+  height: 20px;
+}
+
+.auth-brand h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.auth-subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-theme-picker {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.auth-theme-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.auth-theme-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.auth-theme-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.auth-theme-popover {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  z-index: 10;
+}
+
+.auth-theme-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-theme-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.auth-palette-row {
+  display: flex;
+  gap: 10px;
+}
+
+.auth-palette-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: var(--transition);
+}
+
+.auth-palette-swatch.active {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--panel-bg);
+}
+
+/* Segmented control, not two full-size buttons - the two modes are a single
+   choice, not two commands of equal weight. */
+.auth-mode-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.auth-mode-tab {
   flex: 1;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.auth-mode-tab.active {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  color: #fff;
+  box-shadow: 0 2px 10px var(--accent-cyan-glow);
 }
 
 /* App Container */

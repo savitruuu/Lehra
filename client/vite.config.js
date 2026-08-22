@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true,
     // The API is a separate Express process in development. Proxying it under
     // the same origin as the page is what lets the session cookie be a plain
     // same-site httpOnly cookie rather than a cross-origin one.
