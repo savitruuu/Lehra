@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { SettingsTile } from "../components/Tile.jsx";
+import { AccountPanel } from "../components/AccountPanel.jsx";
 import {
   loadSettings,
   saveSettings,
@@ -21,8 +22,9 @@ import {
  * The four player defaults are the opposite: they describe what the app should
  * open with next time, so they wait for Save.
  *
- * Everything here is written to this browser's localStorage. There is no
- * account section: accounts exist in the backend but are not surfaced yet.
+ * Everything here is written to this browser's localStorage. The account
+ * section below is the exception - it talks to the API - but nothing else on
+ * this screen, or anywhere else in the app, is gated on being signed in.
  */
 export function SettingsScreen({ active }) {
   const [settings, setSettings] = useState(loadSettings);
@@ -132,6 +134,12 @@ export function SettingsScreen({ active }) {
           Saved. These are what the app will open with.
         </p>
       </div>
+
+      <h2 style={{ fontWeight: 700, marginTop: 32 }}>Account</h2>
+      <p style={{ color: "var(--text-secondary)", marginTop: -20 }}>
+        Optional. Sign in to keep your account on file for what's coming next.
+      </p>
+      <AccountPanel />
     </section>
   );
 }

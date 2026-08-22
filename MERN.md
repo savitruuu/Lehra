@@ -69,10 +69,11 @@ rate-limited to 20 attempts per 15 minutes. Login answers the same way for an
 unknown email and a wrong password, so the response cannot be used to discover
 which emails are registered.
 
-**There is no login UI yet.** `client/src/auth/AuthContext.jsx` is wired and
-calls `/api/auth/me` on load, but no screen uses it and Settings shows no
-account section — by request. Building the screens is a matter of consuming
-`useAuth()`; nothing else has to change.
+**The login UI lives in Settings.** `client/src/components/AccountPanel.jsx`
+consumes `useAuth()` and is rendered from the bottom of the Settings screen —
+sign in / create account when signed out, name + email + Sign Out when signed
+in. Nothing outside that one component reads `useAuth()`, and nothing else in
+the app is gated on being signed in.
 
 ## Payments
 

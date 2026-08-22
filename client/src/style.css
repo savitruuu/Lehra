@@ -564,7 +564,7 @@ body {
    unreadable. color-scheme is the other half of the fix - it tells the browser
    which set of native widget colors to start from, so the popup's own
    scrollbar, borders and hover highlight come out light or dark to match. */
-select, input[type="number"] {
+select, input[type="number"], .text-input {
   width: 100%;
   padding: 12px;
   background: var(--select-bg);
@@ -577,7 +577,11 @@ select, input[type="number"] {
   cursor: pointer;
 }
 
-select:focus, input[type="number"]:focus {
+.text-input {
+  cursor: text;
+}
+
+select:focus, input[type="number"]:focus, .text-input:focus {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 10px var(--accent-cyan-glow);
 }
