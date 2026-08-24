@@ -1,0 +1,20 @@
+# lehra-api is on Render's free plan, which spins the service down after
+# ~15 minutes with no traffic; the next request then pays a ~30s cold-start
+# cost. This pings its health endpoint every 10 minutes - comfortably inside
+# that window - so it never falls asleep during normal waking hours.
+#
+# Note: GitHub disables scheduled workflows on a repo after 60 days with no
+# other activity (commits, etc.) on it. A push to main re-enables it.
+name: Keep lehra-api warm
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: curl -fsS --max-time 25 https://lehra-api.onrender.com/healthz
