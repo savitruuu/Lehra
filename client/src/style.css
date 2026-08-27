@@ -3998,8 +3998,14 @@ body.tabla-mode .mixer-cell #tabla-play-btn {
   body.player-active::after {
     content: "";
     position: fixed;
-    left: 0;
-    right: 0;
+    /* Pinned to the bottom of the content column, not the whole window: the
+       app-container is a centred 500px strip on desktop (see its phone-block
+       max-width), and left:0/right:0 stretched this floral band clear across
+       the screen there. */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
     bottom: calc(2px + var(--safe-bottom));
     z-index: 1;
     height: 18px;
