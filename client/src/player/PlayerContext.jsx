@@ -34,6 +34,12 @@ const SCREENSAVER_DELAY_MS = 30000;
 const MIN_BPM = 30;
 const MAX_BPM = 400;
 
+// Tanpura pluck spacing as a percentage of the recording's own pace: lower is
+// slower, more spaced-out plucks. setTanpuraTempo takes 100 / this. Now that
+// every scale plucks at exactly this pace (the resample-speed compensation in
+// audio.js), 70 sits a touch slower than the old ~80 that only some scales hit.
+const DEFAULT_TANPURA_SPEED = 70;
+
 export function PlayerProvider({ children }) {
   const saved = useMemo(() => loadSettings(), []);
 
@@ -56,7 +62,7 @@ export function PlayerProvider({ children }) {
     metronome: 70,
     tabla: 70
   });
-  const [tanpuraSpeed, setTanpuraSpeed] = useState(80);
+  const [tanpuraSpeed, setTanpuraSpeed] = useState(DEFAULT_TANPURA_SPEED);
   const [tanpuraString, setTanpuraString] = useState("pa");
 
   // --- What is currently sounding -----------------------------------------
@@ -112,7 +118,7 @@ export function PlayerProvider({ children }) {
     AudioEngine.preloadInstrument(saved.instrument);
 
     AudioEngine.tanpuraDroneType = "pa";
-    AudioEngine.setTanpuraTempo(100 / 80);
+    AudioEngine.setTanpuraTempo(100 / DEFAULT_TANPURA_SPEED);
 
     // Lets the tempo readout settle once a background stretch has landed.
     AudioEngine.onTanpuraStretchEnd = () => {};
