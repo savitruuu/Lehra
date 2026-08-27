@@ -176,7 +176,15 @@ class LehraAudioEngine {
     this.currentStringIndex = 0; // 0 to 3
     this.droneInterval = 1.6; // base seconds between plucks (humanised per pluck)
 
-    // 1.0 = the recording's own pace. Below 1 plucks faster, above 1 slower.
+    // What the speed slider asks for: 1.0 = the recording's own pace, below 1
+    // plucks faster, above 1 slower. Kept separate from tanpuraTempo because the
+    // buffer that is actually built gets an extra factor folded in to cancel the
+    // speed change that resampling to the chosen Sa would otherwise cause - see
+    // scaleCompensatedTempo().
+    this.tanpuraUserTempo = 1.0;
+
+    // The WSOLA stretch factor actually applied to the recording. Equals
+    // tanpuraUserTempo * (resample rate for the current scale).
     this.tanpuraTempo = 1.0;
 
     // Sampled tanpura state
@@ -1436,6 +1444,26 @@ class LehraAudioEngine {
   }
 
   /**
+   * The WSOLA stretch factor to build the drone buffer at, so that every scale
+   * plucks at the pace the speed slider asks for.
+   *
+   * scheduleTanpuraCycle() plays the buffer through an AudioBufferSourceNode at
+   * playbackRate = getTanpuraPlaybackRate(), which is how the recording is moved
+   * onto the chosen Sa. That resample scales playback speed by the same factor,
+   * and because getTanpuraPlaybackRate() folds by octaves to stay near the
+   * source tonic, the factor jumps by nearly 2x between E and F (E resamples up,
+   * F down an octave) - which is why the drone used to pluck noticeably slower
+   * at F and F# than at, say, C# or D. Pre-stretching the buffer by
+   * userTempo * rate cancels the resample's speed change exactly: the net pluck
+   * spacing comes out at userTempo for all twelve scales.
+   */
+  scaleCompensatedTempo() {
+    const cfg = TANPURA_SAMPLES[this.tanpuraDroneType];
+    const rate = cfg ? this.getTanpuraPlaybackRate(cfg.sourceSaHz) : 1;
+    return this.tanpuraUserTempo * rate;
+  }
+
+  /**
    * Overlap-add time stretch, used to change how fast the tanpura is plucked
    * without touching its pitch.
    *
@@ -1587,15 +1615,33 @@ class LehraAudioEngine {
     if (token !== this._tempoRequestToken) return;   // superseded by a newer request
 
     this.stretchedBuffers[key] = stretched;
+    this._pruneStretchedBuffers(key);
     this.tanpuraTempo = factor;
     this.restartTanpuraCycleIfPlaying();
     if (this.onTanpuraStretchEnd) this.onTanpuraStretchEnd();
   }
 
+  /**
+   * Caps the stretched-buffer cache. Each entry is a full ~30s stereo copy of a
+   * recording (~10MB), and there is now one per (tuning, scale, tempo) combo
+   * rather than one per tempo, so an unbounded cache could grow to well over
+   * 100MB as the user tries different scales. Oldest entries go first; the key
+   * just written is always kept.
+   */
+  _pruneStretchedBuffers(keep) {
+    const MAX_STRETCHED_BUFFERS = 8;
+    const keys = Object.keys(this.stretchedBuffers);
+    for (let i = 0; i < keys.length - MAX_STRETCHED_BUFFERS; i++) {
+      if (keys[i] !== keep) delete this.stretchedBuffers[keys[i]];
+    }
+  }
+
   /** Slider hook: 1.0 is the recording's own pace, lower is faster. */
   async setTanpuraTempo(factor) {
+    this.tanpuraUserTempo = factor;
     this.droneInterval = 1.6 * factor;   // the synth path just changes its gap, instantly
-    await this._ensureTempoAndRestart(this.tanpuraDroneType, factor);
+    await this._ensureTempoAndRestart(
+      this.tanpuraDroneType, this.scaleCompensatedTempo());
   }
 
   async loadTanpuraSample(type) {
@@ -1632,13 +1678,16 @@ class LehraAudioEngine {
 
     if (buffer) {
       this.usingSampledTanpura = true;
+      // The factor depends on the scale and the tuning, both of which may have
+      // changed since the last pass - recompute before the catch-up check.
+      this.tanpuraTempo = this.scaleCompensatedTempo();
       this.nextCycleTime = this.ctx.currentTime + 0.02;
       this._pendingFadeIn = 0;   // sound the instant Play is pressed
       this.cycleScheduler();
 
-      // If a non-default tempo was already dialled in (e.g. before the first
-      // Play press), it plays at the recording's natural pace immediately and
-      // then catches up once the background stretch is ready - never a freeze.
+      // If the target buffer isn't stretched yet, it plays at the recording's
+      // natural pace immediately and then catches up once the background stretch
+      // is ready - never a freeze.
       const key = this.tanpuraDroneType + "_" + this.tanpuraTempo.toFixed(2);
       if (Math.abs(this.tanpuraTempo - 1) >= 0.01 && !this.stretchedBuffers[key]) {
         this._ensureTempoAndRestart(this.tanpuraDroneType, this.tanpuraTempo);
@@ -1695,11 +1744,25 @@ class LehraAudioEngine {
     }
   }
 
-  /** Re-pitch a running sampled drone after the user changes scale. */
+  /**
+   * Re-pitch a running sampled drone after the user changes scale.
+   *
+   * The stretch factor is scale-dependent (scaleCompensatedTempo), so a new
+   * scale needs a freshly stretched buffer as well as the new resample rate.
+   * The cycle is restarted right away so the pitch follows immediately -
+   * scheduleTanpuraCycle() reads the rate itself - and the raw recording covers
+   * the moment until the new stretched buffer lands, exactly as a tempo-slider
+   * move does.
+   */
   retuneTanpura() {
-    if (this.tanpuraPlaying && this.usingSampledTanpura) {
-      this.stopTanpura();
-      this.startTanpura();
+    if (!this.tanpuraPlaying || !this.usingSampledTanpura) return;
+
+    this.tanpuraTempo = this.scaleCompensatedTempo();
+    this.restartTanpuraCycleIfPlaying();
+
+    const key = this.tanpuraDroneType + "_" + this.tanpuraTempo.toFixed(2);
+    if (Math.abs(this.tanpuraTempo - 1) >= 0.01 && !this.stretchedBuffers[key]) {
+      this._ensureTempoAndRestart(this.tanpuraDroneType, this.tanpuraTempo);
     }
   }
 
