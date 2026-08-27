@@ -96,7 +96,6 @@ const SWARMANDAL_PAKAD_GAP = 0.2;     // the pakads are phrases, not sweeps - un
 const SWARMANDAL_PAKAD_LEVEL = 0.4;   // and much quieter than the two brushes
 const SWARMANDAL_RING = 3.2;          // nominal ring passed to the synth body voice
 const SWARMANDAL_BODY_TAIL = 9.0;     // quiet synth tail layered under every note
-const SWARMANDAL_TAIL_RING = 22.0;    // the last note of a phrase rings on far longer
 const SWARMANDAL_INTERVAL = 8.0;      // seconds between phases
 const SWARMANDAL_TIME_JITTER = 0.22;  // +/- fraction of the gap, per note - kills the grid feel
 const SWARMANDAL_LEVEL_JITTER = 0.14; // +/- fraction of level, per note
@@ -155,7 +154,7 @@ const MIX = {
   // Set by ear for the prototype, not measured like the four above: a bright
   // sparse flourish that colours the top of the mix without competing with the
   // voice. Re-measure against the others once the voicing settles.
-  swarmandal: { scale: 0.495 }
+  swarmandal: { scale: 0.21 }
 };
 
 /**
@@ -2132,14 +2131,13 @@ class LehraAudioEngine {
 
     let t = startTime;
     for (let i = 0; i < run.length; i++) {
-      const isLast = i === run.length - 1;
       const detune = (Math.random() - 0.5) * 2 * SWARMANDAL_DETUNE_CENTS;
       const freq =
         this.getFrequency(run[i] + SWARMANDAL_OCTAVE_SHIFT) *
         Math.pow(2, detune / 1200);
       const noteLevel = level * (1 + (Math.random() - 0.5) * 2 * SWARMANDAL_LEVEL_JITTER);
 
-      this.pluckSwarmandalString(freq, t, SWARMANDAL_RING, noteLevel, isLast);
+      this.pluckSwarmandalString(freq, t, SWARMANDAL_RING, noteLevel);
 
       // advance, with the gap itself loosely varied
       t += gap * (1 + (Math.random() - 0.5) * 2 * SWARMANDAL_TIME_JITTER);
@@ -2149,27 +2147,21 @@ class LehraAudioEngine {
 
   /**
    * One note. The recorded pluck (resampled to `freq`) gives the attack and
-   * body; a quiet synth voice is always layered underneath to carry the ring
-   * on past the short recording, so nothing stops dead. The last note of a
-   * phrase gets a longer, slightly fuller tail.
+   * body; a quiet synth voice is layered underneath to carry the ring on past
+   * the short recording, so nothing stops dead. Every note is treated the same
+   * - a longer tail on the phrase's last note rang muddily on phone speakers.
    */
-  pluckSwarmandalString(freq, time, ringTime, level = 0.9, sustain = false) {
+  pluckSwarmandalString(freq, time, ringTime, level = 0.9) {
     if (this.swarmandalBuffer) {
-      this._playSwarmandalSample(freq, time, level, sustain);
+      this._playSwarmandalSample(freq, time, level);
       this._synthSwarmandalString(
-        freq, time,
-        sustain ? SWARMANDAL_TAIL_RING : SWARMANDAL_BODY_TAIL,
-        level * (sustain ? 0.58 : 0.3),
+        freq, time, SWARMANDAL_BODY_TAIL, level * 0.3,
         0.4,                                // slow fade-in: fills the tail, not the attack
-        sustain ? 20 : 14                   // a fuller ring on the note the phrase lands on
+        14                                  // fewer partials - a sustain tail, not an attack
       );
     } else {
       // No recording - the synth is the whole voice.
       this._synthSwarmandalString(freq, time, ringTime, level);
-      if (sustain) {
-        this._synthSwarmandalString(
-          freq, time, SWARMANDAL_TAIL_RING, level * 0.4, 0.3);
-      }
     }
   }
 
@@ -2179,7 +2171,7 @@ class LehraAudioEngine {
    * that spans an octave or so (which every aaroh/avaroh does) plays with its
    * shape intact rather than having its top note collapse back down.
    */
-  _playSwarmandalSample(freq, time, level = 0.9, sustain = false) {
+  _playSwarmandalSample(freq, time, level = 0.9) {
     // The runs play an octave above where they are written, so the sample is
     // biased up too: keep the resample rate in [1, 4) rather than [0.5, 2).
     let rate = freq / SWARMANDAL_SAMPLE.rootHz;
@@ -2190,15 +2182,12 @@ class LehraAudioEngine {
     src.buffer = this.swarmandalBuffer;
     src.playbackRate.value = rate;
 
-    // The recording carries its own attack and decay. On an ordinary note ease
-    // its last stretch down so it hands over to the synth tail without a step;
-    // on the note the phrase lands on, let the recording ring out in full.
+    // The recording carries its own attack and decay. Ease its last stretch
+    // down so it hands over to the synth tail rather than ending on a step.
     const gain = this.ctx.createGain();
     const playLen = this.swarmandalBuffer.duration / rate;
     gain.gain.setValueAtTime(level, time);
-    if (!sustain) {
-      gain.gain.setTargetAtTime(0.0001, time + playLen * 0.6, playLen * 0.25);
-    }
+    gain.gain.setTargetAtTime(0.0001, time + playLen * 0.6, playLen * 0.25);
 
     src.connect(gain);
     gain.connect(this.swarmandalGain);
