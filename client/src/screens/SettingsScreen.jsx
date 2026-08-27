@@ -91,34 +91,23 @@ export function SettingsScreen({ active }) {
 
         <hr style={{ border: 0, borderTop: "1px solid var(--panel-border)" }} />
 
-        <div>
-          <h4 style={{ fontWeight: 600, margin: 0 }}>
-            Default Lehra Configuration
-          </h4>
-          <p
-            style={{
-              fontSize: 13,
-              color: "var(--text-secondary)",
-              margin: "4px 0 0"
-            }}
-          >
-            What the player opens with next time.
-          </p>
-        </div>
+        <h4 style={{ fontWeight: 600, margin: 0 }}>
+          Default Lehra Configuration
+        </h4>
 
+        <SettingsTile
+          id="settings-pitch-tile"
+          label="Default Pitch"
+          options={PITCH_PLAIN_OPTIONS}
+          value={settings.pitch}
+          onSelect={(pitch) => update({ pitch })}
+        />
         <SettingsTile
           id="settings-taal-tile"
           label="Default Taal"
           options={LEHRA_TAAL_OPTIONS}
           value={settings.taal}
           onSelect={(taal) => update({ taal })}
-        />
-        <SettingsTile
-          id="settings-raag-tile"
-          label="Default Raag"
-          options={ALL_RAAG_OPTIONS}
-          value={settings.raag}
-          onSelect={(raag) => update({ raag })}
         />
         <SettingsTile
           id="settings-instrument-tile"
@@ -128,11 +117,11 @@ export function SettingsScreen({ active }) {
           onSelect={(instrument) => update({ instrument })}
         />
         <SettingsTile
-          id="settings-pitch-tile"
-          label="Default Pitch"
-          options={PITCH_PLAIN_OPTIONS}
-          value={settings.pitch}
-          onSelect={(pitch) => update({ pitch })}
+          id="settings-raag-tile"
+          label="Default Raag"
+          options={ALL_RAAG_OPTIONS}
+          value={settings.raag}
+          onSelect={(raag) => update({ raag })}
         />
 
         <div className="slider-container">
