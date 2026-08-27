@@ -31,7 +31,8 @@ export const DEFAULT_SETTINGS = {
   taal: "teentaal",
   raag: "hemant",
   instrument: "santoor",
-  pitch: "C#"
+  pitch: "C#",
+  bpm: 120
 };
 
 export function loadSettings() {

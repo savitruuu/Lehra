@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { SettingsTile } from "../components/Tile.jsx";
+import { RangeInput } from "../components/RangeInput.jsx";
 import { AccountPanel } from "../components/AccountPanel.jsx";
 import {
   loadSettings,
@@ -14,13 +15,17 @@ import {
   PITCH_PLAIN_OPTIONS
 } from "../lib/options.js";
 
+// The same range the player's tempo slider allows (see PlayerContext).
+const MIN_BPM = 30;
+const MAX_BPM = 400;
+
 /**
  * Application settings.
  *
  * Theme and palette apply the moment they are changed - they are what the
  * screen looks like, and a preview you have to save to see is not a preview.
- * The four player defaults are the opposite: they describe what the app should
- * open with next time, so they wait for Save.
+ * The Default Lehra Configuration group is the opposite: it describes what the
+ * app should open with next time, so it waits for Save.
  *
  * Everything here is written to this browser's localStorage. The account
  * section below is the exception - it talks to the API - but the practice
@@ -86,6 +91,21 @@ export function SettingsScreen({ active }) {
 
         <hr style={{ border: 0, borderTop: "1px solid var(--panel-border)" }} />
 
+        <div>
+          <h4 style={{ fontWeight: 600, margin: 0 }}>
+            Default Lehra Configuration
+          </h4>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--text-secondary)",
+              margin: "4px 0 0"
+            }}
+          >
+            What the player opens with next time.
+          </p>
+        </div>
+
         <SettingsTile
           id="settings-taal-tile"
           label="Default Taal"
@@ -114,6 +134,23 @@ export function SettingsScreen({ active }) {
           value={settings.pitch}
           onSelect={(pitch) => update({ pitch })}
         />
+
+        <div className="slider-container">
+          <div className="slider-header">
+            <label className="control-label" htmlFor="settings-default-bpm">
+              Default Tempo
+            </label>
+            <span className="slider-val">{settings.bpm} BPM</span>
+          </div>
+          <RangeInput
+            id="settings-default-bpm"
+            min={MIN_BPM}
+            max={MAX_BPM}
+            value={settings.bpm}
+            onChange={(bpm) => update({ bpm })}
+            aria-label="Default tempo in BPM"
+          />
+        </div>
 
         <button className="btn btn-primary" style={{ marginTop: 10 }} onClick={onSave}>
           Save Configuration Defaults

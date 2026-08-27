@@ -43,7 +43,12 @@ export function PlayerProvider({ children }) {
   const [instrument, setInstrument] = useState(saved.instrument);
   const [pitch, setPitch] = useState(saved.pitch);
   const [pitchCents, setPitchCents] = useState(0);
-  const [bpm, setBpmState] = useState(120);
+  const [bpm, setBpmState] = useState(() => {
+    const savedBpm = Number(saved.bpm);
+    return Number.isFinite(savedBpm)
+      ? Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(savedBpm)))
+      : 120;
+  });
 
   const [volumes, setVolumes] = useState({
     lehra: 70,
