@@ -2746,24 +2746,19 @@ input:checked + .slider-switch:before {
    ========================================================================= */
 
 /* The lehra and everything that only serves it - the raag and instrument it is
-   played on, its status line, its own level. The tabla's
-   own play button goes too: in this mode the main play button below is the
-   tabla's, and two switches for one thing is one too many. */
+   played on, its status line. The tabla's own play button goes too: in this
+   mode the main play button below is the tabla's, and two switches for one
+   thing is one too many. The level slot under the tempo stays visible - it
+   carries the tabla's own level here (see TransportPanel). */
 body.tabla-mode #card-instrument,
 body.tabla-mode #card-raag,
 body.tabla-mode #tile-instrument,
 body.tabla-mode #tile-raag,
-body.tabla-mode #lehra-volume-block,
-body.tabla-mode #lehra-volume-slot,
 body.tabla-mode .transport-status,
 body.tabla-mode #tabla-play-btn,
-/* Emptied by the relocation above - its contents are in the left column now. */
+/* No separate tabla cell in accompaniment mode - the main play button and the
+   level slot under the tempo cover it. */
 body.tabla-mode #mixer-cell-tabla {
-  display: none;
-}
-
-/* The slot that receives them, which is furniture on the lehra player. */
-body:not(.tabla-mode) #mixer-cell-tabla-left {
   display: none;
 }
 

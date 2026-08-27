@@ -230,9 +230,12 @@ function ControlSections() {
   // be offering silence or a fragment of somebody else's line.
   const taalOptions = tablaMode ? TAAL_OPTIONS : LEHRA_TAAL_OPTIONS;
 
+  // Lehra player only. In accompaniment mode the main Play button is the
+  // tabla's and its level lives under the tempo slider (see TransportPanel),
+  // so this cell would be a second switch for the same thing.
   const tablaCell = (
     <MixerCell
-      id={tablaMode ? "mixer-cell-tabla-left" : "mixer-cell-tabla"}
+      id="mixer-cell-tabla"
       name="Tabla"
       headingId="tabla-heading"
       playing={playing.tabla}
@@ -303,11 +306,6 @@ function ControlSections() {
           value={swarmandalRaag}
           onSelect={setSwarmandalRaag}
         />
-        {/* In accompaniment mode the tabla's controls move out of the levels
-            column and under Taal: with the raag and the instrument gone, this
-            column becomes the taal and the drum that plays it, and the right
-            column is left for the two things a singer balances against them. */}
-        {tablaMode ? tablaCell : <div className="mixer-cell" id="mixer-cell-tabla-left" />}
       </div>
 
       <div className="control-section" id="mixer-section">
@@ -410,7 +408,7 @@ function TransportPanel() {
   const {
     bpm, setBpm,
     taalDef, raag, instrument, pitch,
-    playing, togglePrimary, tablaMode, tablaBusy,
+    playing, togglePrimary, tablaMode, tablaBusy, tablaLoadFailed,
     volumes, setVolume
   } = usePlayer();
 
@@ -471,20 +469,29 @@ function TransportPanel() {
         <button id="bpm-double" className="btn btn-round bpm-step bpm-step-sm" onClick={() => setBpm(bpm * 2)} aria-label="Double the tempo">2x</button>
       </div>
 
-      {/* The lehra's own level, right under the tempo it belongs with. No play
-          button of its own - the main Play button already covers it. */}
+      {/* The level of whatever the main Play button drives - the lehra, or the
+          tabla in accompaniment mode - right under the tempo it belongs with.
+          No play button of its own; the main Play button already covers it. */}
       <div className="lehra-volume-slot" id="lehra-volume-slot">
         <div className="slider-container" id="lehra-volume-block">
           <div className="slider-header">
-            <span className="control-label">Lehra Volume</span>
-            <span className="slider-val">{volumes.lehra}%</span>
+            <span className="control-label">{what} Volume</span>
+            <span className="slider-val">
+              {tablaMode ? volumes.tabla : volumes.lehra}%
+            </span>
           </div>
           <RangeInput
-            value={volumes.lehra}
-            onChange={(v) => setVolume("lehra", v)}
-            aria-label="Lehra volume"
+            value={tablaMode ? volumes.tabla : volumes.lehra}
+            onChange={(v) => setVolume(tablaMode ? "tabla" : "lehra", v)}
+            aria-label={`${what} volume`}
           />
         </div>
+        {tablaMode && tablaLoadFailed && (
+          <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>
+            Tabla recordings could not be loaded - serve the app over http
+            rather than opening the file directly.
+          </p>
+        )}
       </div>
     </div>
   );
