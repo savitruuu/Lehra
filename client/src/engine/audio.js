@@ -600,7 +600,13 @@ class LehraAudioEngine {
       return drutNotes[index % drutNotes.length];
     }
 
-    if (window._activeRaagKey === "mylehra" && this.bpm > 180) {
+    // Charukeshi and Charukeshi 2 share a scale, so at drut they share the same
+    // dedicated line rather than each racing through its madhya lehra.
+    if (
+      (window._activeRaagKey === "mylehra" ||
+        window._activeRaagKey === "charukeshi") &&
+      this.bpm > 180
+    ) {
       const drutNotes = [12, null, null, 9, 14, null, 16, 17, 15, null, 12, 14, 11, 12, 9, 10];
       return drutNotes[index % drutNotes.length];
     }
