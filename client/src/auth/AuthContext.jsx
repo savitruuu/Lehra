@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import { api } from "../lib/api.js";
 
 /**
@@ -8,52 +8,60 @@ import { api } from "../lib/api.js";
  * actually reads `user` to decide whether to render Shell or the gate. This
  * context only holds the session state and the calls that change it.
  *
- * `status` distinguishes "we have not asked the server yet" from "we asked and
- * nobody is signed in", which matters so AuthGate doesn't flash the sign-in
- * form for a moment before a valid session is confirmed.
+ * The session is kept as-is once established: the signed-in user is persisted
+ * to localStorage and restored on every app open, with NO server round-trip to
+ * re-check it. Credentials are verified exactly once - at login/signup - and
+ * not again until the user explicitly logs out and logs back in. (The httpOnly
+ * JWT cookie is still what authenticates any real API call; this app just does
+ * not gate the UI behind re-confirming it on load.)
+ *
+ * `status` is always "ready" now - there is no "we have not asked the server
+ * yet" phase - but it is kept so AuthGate's existing check stays valid.
  */
 const AuthContext = createContext(null);
 
+const AUTH_USER_KEY = "lehra_auth_user";
+
+function loadStoredUser() {
+  const stored = localStorage.getItem(AUTH_USER_KEY);
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch {
+    localStorage.removeItem(AUTH_USER_KEY);
+    return null;
+  }
+}
+
+function storeUser(user) {
+  if (user) {
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(AUTH_USER_KEY);
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [status, setStatus] = useState("loading"); // loading | ready
-
-  useEffect(() => {
-    let cancelled = false;
-
-    api
-      .me()
-      .then((data) => {
-        if (!cancelled) setUser(data.user);
-      })
-      .catch(() => {
-        // The API not being up is not an error the player should ever see -
-        // signed out is a perfectly good state for this app to run in.
-        if (!cancelled) setUser(null);
-      })
-      .finally(() => {
-        if (!cancelled) setStatus("ready");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [user, setUser] = useState(loadStoredUser);
+  const [status] = useState("ready");
 
   const login = useCallback(async (email, password) => {
     const data = await api.login(email, password);
+    storeUser(data.user);
     setUser(data.user);
     return data.user;
   }, []);
 
   const signup = useCallback(async (email, password, name) => {
     const data = await api.signup(email, password, name);
+    storeUser(data.user);
     setUser(data.user);
     return data.user;
   }, []);
 
   const verifyOtp = useCallback(async (email, code) => {
     const data = await api.verifyOtp(email, code);
+    storeUser(data.user);
     setUser(data.user);
     return data.user;
   }, []);
@@ -61,8 +69,14 @@ export function AuthProvider({ children }) {
   const resendOtp = useCallback((email) => api.resendOtp(email), []);
 
   const logout = useCallback(async () => {
-    await api.logout();
-    setUser(null);
+    // Clear locally even if the network call fails - a logout the user asked
+    // for should not be undone by an unreachable API.
+    try {
+      await api.logout();
+    } finally {
+      storeUser(null);
+      setUser(null);
+    }
   }, []);
 
   return (
