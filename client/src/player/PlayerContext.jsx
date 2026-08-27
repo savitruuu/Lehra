@@ -13,6 +13,10 @@ import { TAAL_DATA } from "../engine/taalData.js";
 import { savePracticeSession } from "../lib/practiceLog.js";
 import { loadSettings } from "../lib/settings.js";
 import { raagOptionsForTaal, SCALE_STEP_ORDER } from "../lib/options.js";
+import {
+  DEFAULT_SWARMANDAL_RAAG,
+  swarmandalRaagByKey
+} from "../lib/swarmandalRaags.js";
 
 /**
  * The bridge between React and the audio engine.
@@ -60,17 +64,20 @@ export function PlayerProvider({ children }) {
     lehra: 70,
     tanpura: 70,
     metronome: 70,
-    tabla: 70
+    tabla: 70,
+    swarmandal: 50
   });
   const [tanpuraSpeed, setTanpuraSpeed] = useState(DEFAULT_TANPURA_SPEED);
   const [tanpuraString, setTanpuraString] = useState("pa");
+  const [swarmandalRaag, setSwarmandalRaag] = useState(DEFAULT_SWARMANDAL_RAAG);
 
   // --- What is currently sounding -----------------------------------------
   const [playing, setPlaying] = useState({
     lehra: false,
     tanpura: false,
     metronome: false,
-    tabla: false
+    tabla: false,
+    swarmandal: false
   });
   const [tablaMode, setTablaModeState] = useState(false);
   const [tablaBusy, setTablaBusy] = useState(false);
@@ -116,6 +123,7 @@ export function PlayerProvider({ children }) {
     AudioEngine.preloadTanpuraSamples();
     AudioEngine.preloadTablaSamples();
     AudioEngine.preloadInstrument(saved.instrument);
+    AudioEngine.loadSwarmandalSample();
 
     AudioEngine.tanpuraDroneType = "pa";
     AudioEngine.setTanpuraTempo(100 / DEFAULT_TANPURA_SPEED);
@@ -146,6 +154,11 @@ export function PlayerProvider({ children }) {
   useEffect(() => {
     AudioEngine.bpm = bpm;
   }, [bpm]);
+
+  useEffect(() => {
+    const r = swarmandalRaagByKey(swarmandalRaag);
+    AudioEngine.setSwarmandalRaag(r.aaroh, r.avaroh, r.pakad, r.pakad2);
+  }, [swarmandalRaag]);
 
   useEffect(() => {
     AudioEngine.pitch = pitch;
@@ -187,7 +200,8 @@ export function PlayerProvider({ children }) {
       lehra: "lehraGain",
       tanpura: "droneGain",
       metronome: "metronomeGain",
-      tabla: "tablaGain"
+      tabla: "tablaGain",
+      swarmandal: "swarmandalGain"
     }[bus];
 
     const node = AudioEngine[nodeName];
@@ -338,7 +352,8 @@ export function PlayerProvider({ children }) {
       lehra: AudioEngine.isPlaying,
       tanpura: AudioEngine.tanpuraPlaying,
       metronome: AudioEngine.metronomeIsPlaying,
-      tabla: AudioEngine.tablaIsPlaying
+      tabla: AudioEngine.tablaIsPlaying,
+      swarmandal: AudioEngine.swarmandalPlaying
     });
   }, []);
 
@@ -388,6 +403,27 @@ export function PlayerProvider({ children }) {
     syncPlaying();
   }, [syncPlaying]);
 
+  const toggleSwarmandal = useCallback(async () => {
+    if (AudioEngine.swarmandalPlaying) {
+      // Pause the swarmandal only - the tanpura it started keeps droning, the
+      // same way stopping the lehra leaves the tanpura on.
+      AudioEngine.stopSwarmandal();
+    } else {
+      AudioEngine.startSwarmandal();
+      applyVolume("swarmandal", volumes.swarmandal);
+      // A swarmandal flourish sits on top of a drone - start the tanpura with
+      // it if it is not already running.
+      if (!AudioEngine.tanpuraPlaying) {
+        await AudioEngine.startTanpura();
+        applyVolume("tanpura", volumes.tanpura);
+        setTanpuraFallback(
+          AudioEngine.tanpuraPlaying && !AudioEngine.usingSampledTanpura
+        );
+      }
+    }
+    syncPlaying();
+  }, [applyVolume, syncPlaying, volumes.swarmandal, volumes.tanpura]);
+
   /**
    * The main transport button. In accompaniment mode it drives the theka rather
    * than the lehra - there is no lehra to start there, and the tabla's own
@@ -410,12 +446,13 @@ export function PlayerProvider({ children }) {
     toggleLehra();
   }, [tablaMode, toggleLehra, syncPlaying]);
 
-  /** Stops every transport at once - lehra, tanpura, metronome and tabla. */
+  /** Stops every transport at once - lehra, tanpura, metronome, tabla, swarmandal. */
   const stopAllTransports = useCallback(() => {
     if (AudioEngine.isPlaying) AudioEngine.stop();
     if (AudioEngine.tanpuraPlaying) AudioEngine.stopTanpura();
     if (AudioEngine.metronomeIsPlaying) AudioEngine.stopMetronome();
     if (AudioEngine.tablaIsPlaying) AudioEngine.stopTabla();
+    if (AudioEngine.swarmandalPlaying) AudioEngine.stopSwarmandal();
     setTanpuraFallback(false);
     syncPlaying();
   }, [syncPlaying]);
@@ -589,10 +626,12 @@ export function PlayerProvider({ children }) {
     volumes, setVolume,
     tanpuraSpeed, setTanpuraSpeed, commitTanpuraSpeed,
     tanpuraString, chooseTanpuraString,
+    swarmandalRaag, setSwarmandalRaag,
 
     // transport
     playing, transportRunning, tablaBusy,
     togglePrimary, toggleLehra, toggleTabla, toggleTanpura, toggleMetronome,
+    toggleSwarmandal,
     tablaMode, setTablaMode,
 
     // readouts

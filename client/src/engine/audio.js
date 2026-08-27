@@ -62,6 +62,47 @@ const TANPURA_CROSSFADE = 2.0;    // equal-power overlap between loop cycles
 const TANPURA_RESTART_FADE = 0.3; // quick crossfade when tempo/tuning changes
 
 /*
+ * Swarmandal - a plucked zither the singer brushes at points of rest, a
+ * shimmering wash that outlines the raag.
+ *
+ * The voice is a recording of one plucked swarmandal string, resampled per
+ * scale degree - that is what makes it sound like the instrument rather than
+ * like an oscillator. The file is a single F4 pluck (~350 Hz) trimmed from a
+ * CC0 recording ("Tuning Swarmandal Indian Harp" by luckylittleraven,
+ * freesound.org/s/415398, Creative Commons 0). If it fails to load the
+ * synthesised voice below carries it instead.
+ *
+ * Its strings are tuned to the selected raag. Each cycle is three phases, one
+ * per swarmandalScheduler tick: the aaroh brushed upward, then the raag's pakad
+ * (its catch-phrase) plucked quietly so the flourish names the raag, then the
+ * avaroh cascaded downward - longer than the aaroh and a little quicker.
+ * setSwarmandalRaag() supplies all three as semitone offsets from madhya Sa
+ * (see lib/swarmandalRaags.js).
+ */
+const SWARMANDAL_SAMPLE = {
+  url: "audio/swarmandal-f4.mp3",
+  rootHz: 350.0   // measured pitch of the recorded note (F4)
+};
+const SWARMANDAL_DEFAULT_AAROH = [-5, 0, 5, 7, 12];   // mandra Pa, Sa, Ma, Pa, taar Sa
+const SWARMANDAL_DEFAULT_AVAROH = [12, 7, 5, 0, -5];
+// The raag runs are written around madhya Sa; a swarmandal sits higher, so the
+// whole thing plays an octave up.
+const SWARMANDAL_OCTAVE_SHIFT = 12;
+const SWARMANDAL_DEFAULT_PAKAD = [0, 5, 7, 0];        // S m P S - neutral
+const SWARMANDAL_DEFAULT_PAKAD2 = [7, 5, 0];          // P m S - neutral
+const SWARMANDAL_STRUM_GAP = 0.075;   // seconds between adjacent strings in the aaroh
+const SWARMANDAL_AVAROH_GAP = 0.08;   // about the same pace as the aaroh, a hair slower
+const SWARMANDAL_PAKAD_GAP = 0.2;     // the pakads are phrases, not sweeps - unhurried
+const SWARMANDAL_PAKAD_LEVEL = 0.4;   // and much quieter than the two brushes
+const SWARMANDAL_RING = 3.2;          // nominal ring passed to the synth body voice
+const SWARMANDAL_BODY_TAIL = 9.0;     // quiet synth tail layered under every note
+const SWARMANDAL_TAIL_RING = 22.0;    // the last note of a phrase rings on far longer
+const SWARMANDAL_INTERVAL = 8.0;      // seconds between phases
+const SWARMANDAL_TIME_JITTER = 0.22;  // +/- fraction of the gap, per note - kills the grid feel
+const SWARMANDAL_LEVEL_JITTER = 0.14; // +/- fraction of level, per note
+const SWARMANDAL_DETUNE_CENTS = 7;    // +/- micro-detune per note, so no two are identical
+
+/*
  * Equal-power crossfade curves.
  *
  * These replace exponentialRampToValueAtTime, which was the cause of two
@@ -110,7 +151,11 @@ const MIX = {
   lehra:     { scale: 1.00 },
   tanpura:   { scale: 0.45 },
   metronome: { scale: 4.85 },
-  tabla:     { scale: 2.89 }
+  tabla:     { scale: 2.89 },
+  // Set by ear for the prototype, not measured like the four above: a bright
+  // sparse flourish that colours the top of the mix without competing with the
+  // voice. Re-measure against the others once the voicing settles.
+  swarmandal: { scale: 0.495 }
 };
 
 /**
@@ -153,6 +198,7 @@ class LehraAudioEngine {
     this.metronomeGain = null;
     this.tablaGain = null;
     this.tablaLimiter = null;
+    this.swarmandalGain = null;
 
     // Scheduler state
     this.bpm = 120;
@@ -227,6 +273,21 @@ class LehraAudioEngine {
     // lehra leaves the theka running - the same way the tanpura keeps droning.
     this.tablaNodes = [];
 
+    // Swarmandal (plucked-zither flourish). Runs on its own timer like the
+    // sampled tanpura's cycle, independent of the matra scheduler.
+    this.swarmandalPlaying = false;
+    this.swarmandalNodes = [];       // { osc, gain } pairs still ringing
+    this.swarmandalTimerId = null;
+    this.nextSweepTime = 0.0;
+    this.swarmandalInterval = SWARMANDAL_INTERVAL;
+    this.swarmandalAaroh = SWARMANDAL_DEFAULT_AAROH;
+    this.swarmandalAvaroh = SWARMANDAL_DEFAULT_AVAROH;
+    this.swarmandalPakad = SWARMANDAL_DEFAULT_PAKAD;
+    this.swarmandalPakad2 = SWARMANDAL_DEFAULT_PAKAD2;
+    this._swarmandalPhase = 0;            // 0 pakad, 1 aaroh, 2 pakad2, 3 avaroh, wraps
+    this.swarmandalBuffer = null;         // the recorded pluck, once decoded
+    this.swarmandalSampleFailed = false;  // no file / decode failed - use the synth
+
     // Callbacks
     this.onBeatCallback = null;
   }
@@ -244,6 +305,7 @@ class LehraAudioEngine {
     this.droneGain = this.ctx.createGain();
     this.metronomeGain = this.ctx.createGain();
     this.tablaGain = this.ctx.createGain();
+    this.swarmandalGain = this.ctx.createGain();
 
     // A struck piano or santoor note peaks far above its own average level, so
     // running the lehra loud enough to be comfortable would clip on the
@@ -263,6 +325,8 @@ class LehraAudioEngine {
     this.lehraLimiter.connect(this.masterGain);
     this.droneGain.connect(this.masterGain);
     this.metronomeGain.connect(this.masterGain);
+    // Bright and sparse; no limiter of its own, it never approaches full scale.
+    this.swarmandalGain.connect(this.masterGain);
 
     // The tabla stays off the lehra limiter - that one starts working at -3 dB
     // and a dha is a transient by nature, so it would take the attack off every
@@ -318,6 +382,7 @@ class LehraAudioEngine {
     this.droneGain.gain.value = mixGain("tanpura", MIX_DEFAULT_PERCENT);
     this.metronomeGain.gain.value = mixGain("metronome", MIX_DEFAULT_PERCENT);
     this.tablaGain.gain.value = mixGain("tabla", MIX_DEFAULT_PERCENT);
+    this.swarmandalGain.gain.value = mixGain("swarmandal", MIX_DEFAULT_PERCENT);
 
     this.sampler.attach(this.ctx);
     this.tabla.attach(this.ctx);
@@ -590,6 +655,15 @@ class LehraAudioEngine {
   }
 
   getResolvedNote(index, notes) {
+    if (
+      (window._activeRaagKey === "kirwani" ||
+        window._activeRaagKey === "kirwani2") &&
+      this.bpm > 180
+    ) {
+      const drutNotes = [0, null, 0, null, 0, null, 3, 7, 3, null, 0, null, -4, null, -1, -1];
+      return drutNotes[index % drutNotes.length];
+    }
+
     if (window._activeRaagKey === "rageshree" && this.bpm >= 190) {
       const drutNotes = [12, null, 12, null, 12, null, 16, 17, 14, null, 12, null, 10, 12, 9, 10];
       return drutNotes[index % drutNotes.length];
@@ -1923,6 +1997,269 @@ class LehraAudioEngine {
       osc.onended = () => {
         const idx = this.tanpuraNodes.indexOf(osc);
         if (idx > -1) this.tanpuraNodes.splice(idx, 1);
+      };
+    }
+  }
+
+  // --- Swarmandal: a glissando brushed across the strings ---
+  //
+  // Independent of every other transport, like the tanpura: it keeps brushing
+  // until its own button stops it. Its scheduler is a plain self-rearming
+  // setTimeout - a brush every ~8s is far too sparse to hang off the 25ms
+  // matra loop.
+
+  startSwarmandal() {
+    this.init();
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    if (this.swarmandalPlaying) return;
+
+    // Fetch the recorded pluck if it is not in yet; the first brushes use the
+    // synth and the sample takes over once it decodes - no wait.
+    this.loadSwarmandalSample();
+
+    this.swarmandalPlaying = true;
+    this._swarmandalPhase = 0;   // always open with a pakad
+    // First brush almost immediately, so the button press is audible.
+    this.nextSweepTime = this.ctx.currentTime + 0.15;
+    this.swarmandalScheduler();
+  }
+
+  /**
+   * Decodes the single swarmandal pluck at SWARMANDAL_SAMPLE.url. One recording
+   * is enough: a pluck is harmonically simple, so resampling it a few semitones
+   * either way reads as a bigger or smaller instrument rather than as an
+   * artefact - the same bargain the tanpura sample makes. Missing or
+   * undecodable, it just leaves swarmandalBuffer null and the synth carries it.
+   */
+  async loadSwarmandalSample() {
+    this.init();
+    if (this.swarmandalBuffer || this.swarmandalSampleFailed) {
+      return this.swarmandalBuffer;
+    }
+    try {
+      const res = await fetch(SWARMANDAL_SAMPLE.url);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      this.swarmandalBuffer = await this.ctx.decodeAudioData(await res.arrayBuffer());
+    } catch (e) {
+      console.warn(
+        "Swarmandal sample unavailable - using the synthesised voice.", e);
+      this.swarmandalSampleFailed = true;
+    }
+    return this.swarmandalBuffer;
+  }
+
+  /**
+   * Tune the swarmandal to a raag: aaroh, avaroh and pakad as ordered semitone
+   * offsets from madhya Sa. Takes effect on the next phase; a running flourish
+   * is not interrupted.
+   */
+  setSwarmandalRaag(aaroh, avaroh, pakad, pakad2) {
+    if (Array.isArray(aaroh) && aaroh.length) this.swarmandalAaroh = aaroh;
+    if (Array.isArray(avaroh) && avaroh.length) this.swarmandalAvaroh = avaroh;
+    if (Array.isArray(pakad) && pakad.length) this.swarmandalPakad = pakad;
+    if (Array.isArray(pakad2) && pakad2.length) this.swarmandalPakad2 = pakad2;
+  }
+
+  stopSwarmandal() {
+    this.swarmandalPlaying = false;
+    clearTimeout(this.swarmandalTimerId);
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    this.swarmandalNodes.forEach(({ osc, gain, startAt }) => {
+      try {
+        if (startAt > now + 0.005) {
+          // A note the sweep had queued ahead but that has not sounded yet.
+          // Stopping it before its own start time means it never makes a sound
+          // at all - if it is left alone its envelope fires at the GainNode's
+          // default level and blasts.
+          osc.stop(now + 0.005);
+          return;
+        }
+        // Already ringing: a short linear fade to true silence, then stop.
+        // Linear so it can reach zero without a click, and without reading
+        // gain.value, which is not reliable in the middle of a ramp.
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(gain.gain.value, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.15);
+        osc.stop(now + 0.2);
+      } catch (e) {}
+    });
+    this.swarmandalNodes = [];
+  }
+
+  /** Sheet hook (not wired to UI yet): seconds between brushes, floored at 2. */
+  setSwarmandalInterval(seconds) {
+    this.swarmandalInterval = Math.max(2, seconds);
+  }
+
+  swarmandalScheduler() {
+    if (!this.swarmandalPlaying) return;
+
+    while (this.nextSweepTime < this.ctx.currentTime + 0.6) {
+      const cycleDone = this.triggerSwarmandalSweep(this.nextSweepTime);
+      // A longer breath at the end of a full cycle (after the avaroh) than
+      // between the phrases inside it, and every gap loosely varied.
+      const base = this.swarmandalInterval * (cycleDone ? 1.8 : 1);
+      this.nextSweepTime += base * (1 + (Math.random() - 0.5) * 0.4);
+    }
+
+    this.swarmandalTimerId = setTimeout(() => this.swarmandalScheduler(), 200);
+  }
+
+  /**
+   * One phase of the cycle: a pakad to name the raag, then the aaroh, then the
+   * other pakad, then the avaroh, then round again. Each is a run of plucks -
+   * the avaroh about the aaroh's pace, the pakads unhurried and much quieter.
+   * Every note's timing, level and tuning is nudged a little so the run
+   * breathes instead of ticking along a grid. Returns true when this phase
+   * completed a full cycle (the avaroh).
+   */
+  triggerSwarmandalSweep(startTime) {
+    const phase = this._swarmandalPhase;
+    this._swarmandalPhase = (phase + 1) % 4;
+
+    let run, gap, level;
+    if (phase === 0) {
+      run = this.swarmandalPakad; gap = SWARMANDAL_PAKAD_GAP; level = SWARMANDAL_PAKAD_LEVEL;
+    } else if (phase === 1) {
+      run = this.swarmandalAaroh; gap = SWARMANDAL_STRUM_GAP; level = 0.9;
+    } else if (phase === 2) {
+      run = this.swarmandalPakad2; gap = SWARMANDAL_PAKAD_GAP; level = SWARMANDAL_PAKAD_LEVEL;
+    } else {
+      run = this.swarmandalAvaroh; gap = SWARMANDAL_AVAROH_GAP; level = 0.9;
+    }
+
+    let t = startTime;
+    for (let i = 0; i < run.length; i++) {
+      const isLast = i === run.length - 1;
+      const detune = (Math.random() - 0.5) * 2 * SWARMANDAL_DETUNE_CENTS;
+      const freq =
+        this.getFrequency(run[i] + SWARMANDAL_OCTAVE_SHIFT) *
+        Math.pow(2, detune / 1200);
+      const noteLevel = level * (1 + (Math.random() - 0.5) * 2 * SWARMANDAL_LEVEL_JITTER);
+
+      this.pluckSwarmandalString(freq, t, SWARMANDAL_RING, noteLevel, isLast);
+
+      // advance, with the gap itself loosely varied
+      t += gap * (1 + (Math.random() - 0.5) * 2 * SWARMANDAL_TIME_JITTER);
+    }
+    return this._swarmandalPhase === 0;
+  }
+
+  /**
+   * One note. The recorded pluck (resampled to `freq`) gives the attack and
+   * body; a quiet synth voice is always layered underneath to carry the ring
+   * on past the short recording, so nothing stops dead. The last note of a
+   * phrase gets a longer, slightly fuller tail.
+   */
+  pluckSwarmandalString(freq, time, ringTime, level = 0.9, sustain = false) {
+    if (this.swarmandalBuffer) {
+      this._playSwarmandalSample(freq, time, level, sustain);
+      this._synthSwarmandalString(
+        freq, time,
+        sustain ? SWARMANDAL_TAIL_RING : SWARMANDAL_BODY_TAIL,
+        level * (sustain ? 0.58 : 0.3),
+        0.4,                                // slow fade-in: fills the tail, not the attack
+        sustain ? 20 : 14                   // a fuller ring on the note the phrase lands on
+      );
+    } else {
+      // No recording - the synth is the whole voice.
+      this._synthSwarmandalString(freq, time, ringTime, level);
+      if (sustain) {
+        this._synthSwarmandalString(
+          freq, time, SWARMANDAL_TAIL_RING, level * 0.4, 0.3);
+      }
+    }
+  }
+
+  /**
+   * The recorded pluck, resampled to the target pitch. Folded only when the
+   * shift would exceed an octave either way - a one-octave window, so a run
+   * that spans an octave or so (which every aaroh/avaroh does) plays with its
+   * shape intact rather than having its top note collapse back down.
+   */
+  _playSwarmandalSample(freq, time, level = 0.9, sustain = false) {
+    // The runs play an octave above where they are written, so the sample is
+    // biased up too: keep the resample rate in [1, 4) rather than [0.5, 2).
+    let rate = freq / SWARMANDAL_SAMPLE.rootHz;
+    while (rate >= 4.0) rate *= 0.5;
+    while (rate < 1.0) rate *= 2;
+
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.swarmandalBuffer;
+    src.playbackRate.value = rate;
+
+    // The recording carries its own attack and decay. On an ordinary note ease
+    // its last stretch down so it hands over to the synth tail without a step;
+    // on the note the phrase lands on, let the recording ring out in full.
+    const gain = this.ctx.createGain();
+    const playLen = this.swarmandalBuffer.duration / rate;
+    gain.gain.setValueAtTime(level, time);
+    if (!sustain) {
+      gain.gain.setTargetAtTime(0.0001, time + playLen * 0.6, playLen * 0.25);
+    }
+
+    src.connect(gain);
+    gain.connect(this.swarmandalGain);
+
+    src.start(time);
+    src.stop(time + playLen + 0.05);
+
+    const entry = { osc: src, gain, startAt: time };
+    this.swarmandalNodes.push(entry);
+    src.onended = () => {
+      const idx = this.swarmandalNodes.indexOf(entry);
+      if (idx > -1) this.swarmandalNodes.splice(idx, 1);
+    };
+  }
+
+  /**
+   * Fallback voice: additive plucked steel. Same shape as the tanpura's jawari
+   * model, voiced brighter - more partials, a stiffer inharmonicity term, a
+   * fast attack and the emphasis left near the fundamental.
+   */
+  _synthSwarmandalString(freq, time, ringTime, level = 0.9, fadeIn = 0.004, partials = 26) {
+    const PARTIALS = partials;
+
+    for (let n = 1; n <= PARTIALS; n++) {
+      // Stiffer string than the tanpura, so the partials spread wider and it
+      // reads as metallic rather than as a drone.
+      const stretch = 1 + 0.0004 * n * n;
+      const partialHz = freq * n * stretch;
+      // Nothing audible above ~19 kHz, and on a high taar Sa the top partials
+      // would otherwise cross Nyquist and alias.
+      if (partialHz > 19000) break;
+
+      const osc = this.ctx.createOscillator();
+      const gainNode = this.ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(partialHz, time);
+      osc.detune.setValueAtTime((Math.random() - 0.5) * 6, time);
+
+      // Gentle rolloff with a slight lift through the low harmonics.
+      const tilt = n <= 6 ? 1.15 : 1.0;
+      const amp = (tilt / Math.pow(n, 0.85)) * 0.045 * (level / 0.9);
+
+      const attack = fadeIn;
+      const decay = ringTime * (1 - 0.55 * (n / PARTIALS));
+
+      gainNode.gain.setValueAtTime(0.0001, time);
+      gainNode.gain.linearRampToValueAtTime(amp, time + attack);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, time + attack + decay);
+
+      osc.connect(gainNode);
+      gainNode.connect(this.swarmandalGain);
+
+      osc.start(time);
+      osc.stop(time + attack + decay + 0.1);
+
+      const entry = { osc, gain: gainNode, startAt: time };
+      this.swarmandalNodes.push(entry);
+      osc.onended = () => {
+        const idx = this.swarmandalNodes.indexOf(entry);
+        if (idx > -1) this.swarmandalNodes.splice(idx, 1);
       };
     }
   }

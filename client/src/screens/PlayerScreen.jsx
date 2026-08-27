@@ -16,6 +16,7 @@ import {
   LAYA_PRESETS,
   TANPURA_STRINGS
 } from "../lib/options.js";
+import { SWARMANDAL_RAAG_OPTIONS } from "../lib/swarmandalRaags.js";
 
 /**
  * The player: one screen, no scrolling, everything within thumb reach.
@@ -218,7 +219,8 @@ function ControlSections() {
     raag, setRaag, raagOptions,
     instrument, setInstrument,
     volumes, setVolume,
-    playing, toggleTanpura, toggleMetronome, toggleTabla, tablaBusy,
+    playing, toggleTanpura, toggleMetronome, toggleTabla, toggleSwarmandal, tablaBusy,
+    swarmandalRaag, setSwarmandalRaag,
     tablaMode, tablaLoadFailed
   } = usePlayer();
   const { openSheet } = useUI();
@@ -252,6 +254,21 @@ function ControlSections() {
     />
   );
 
+  // Accompaniment-mode only: a plucked-zither flourish the singer can brush in
+  // over the theka. It takes the mixer slot the tabla cell vacates when it
+  // moves to the left column in this mode; its raag is chosen from the tile in
+  // the left column, alongside Taal.
+  const swarmandalCell = (
+    <MixerCell
+      id="mixer-cell-swarmandal"
+      name="Swarmandal"
+      playing={playing.swarmandal}
+      onToggle={toggleSwarmandal}
+      volume={volumes.swarmandal}
+      onVolume={(v) => setVolume("swarmandal", v)}
+    />
+  );
+
   return (
     <div className="control-sections" id="control-sections">
       <div className="control-section" id="picker-section">
@@ -275,6 +292,16 @@ function ControlSections() {
           options={raagOptions}
           value={raag}
           onSelect={setRaag}
+        />
+        {/* Accompaniment mode only (hidden by the stylesheet on the lehra
+            player): which raag the swarmandal brushes its aaroh and avaroh in.
+            The same anchored picker the lehra's Raag tile uses. */}
+        <Tile
+          id="tile-swarmandal-raag"
+          label="Swarmandal Raag"
+          options={SWARMANDAL_RAAG_OPTIONS}
+          value={swarmandalRaag}
+          onSelect={setSwarmandalRaag}
         />
         {/* In accompaniment mode the tabla's controls move out of the levels
             column and under Taal: with the raag and the instrument gone, this
@@ -303,7 +330,7 @@ function ControlSections() {
           volume={volumes.metronome}
           onVolume={(v) => setVolume("metronome", v)}
         />
-        {tablaMode ? <div className="mixer-cell" id="mixer-cell-tabla" /> : tablaCell}
+        {tablaMode ? swarmandalCell : tablaCell}
       </div>
     </div>
   );

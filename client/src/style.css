@@ -2767,6 +2767,12 @@ body:not(.tabla-mode) #mixer-cell-tabla-left {
   display: none;
 }
 
+/* The swarmandal's raag tile belongs to accompaniment mode only - the lehra
+   player has its own Raag tile two rows up. */
+body:not(.tabla-mode) #tile-swarmandal-raag {
+  display: none;
+}
+
 /* The first-string choice is an accompaniment-mode control - see the note on it
    in index.html. app.js puts the tuning back to Sa-Pa on the way out, so the
    drone is never left on a tuning with no control on screen to change it. */
