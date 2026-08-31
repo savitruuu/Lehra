@@ -4,9 +4,12 @@ import { api } from "../lib/api.js";
 /**
  * Who is signed in, if anyone.
  *
- * Signing in is mandatory to reach the app - see AuthGate, which is what
- * actually reads `user` to decide whether to render Shell or the gate. This
- * context only holds the session state and the calls that change it.
+ * Reaching the app requires either signing in or choosing "Continue without
+ * an account" (see AuthGate, which is what actually reads `user` to decide
+ * whether to render Shell or the gate). A guest session is just
+ * `{ guest: true }` in `user` - no server round-trip, since practice logs and
+ * settings are local-only (see api.js). This context only holds the session
+ * state and the calls that change it.
  *
  * The session is kept as-is once established: the signed-in user is persisted
  * to localStorage and restored on every app open, with NO server round-trip to
@@ -68,7 +71,24 @@ export function AuthProvider({ children }) {
 
   const resendOtp = useCallback((email) => api.resendOtp(email), []);
 
+  // Guests skip the server entirely - there is no account, so nothing to
+  // authenticate. `guest: true` is the only thing that distinguishes this
+  // from a real signed-in user; everywhere else in the app reads local data
+  // only (see api.js), so it needs no other special-casing.
+  const continueAsGuest = useCallback(() => {
+    const guestUser = { guest: true };
+    storeUser(guestUser);
+    setUser(guestUser);
+  }, []);
+
   const logout = useCallback(async () => {
+    // A guest never authenticated with the server, so there is nothing to
+    // log out of there - just drop the local session.
+    if (user?.guest) {
+      storeUser(null);
+      setUser(null);
+      return;
+    }
     // Clear locally even if the network call fails - a logout the user asked
     // for should not be undone by an unreachable API.
     try {
@@ -77,11 +97,11 @@ export function AuthProvider({ children }) {
       storeUser(null);
       setUser(null);
     }
-  }, []);
+  }, [user]);
 
   return (
     <AuthContext.Provider
-      value={{ user, status, login, signup, verifyOtp, resendOtp, logout }}
+      value={{ user, status, login, signup, verifyOtp, resendOtp, continueAsGuest, logout }}
     >
       {children}
     </AuthContext.Provider>

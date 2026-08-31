@@ -18,12 +18,12 @@ const PALETTE_SWATCHES = {
 /**
  * Everything between opening the app and reaching Shell.
  *
- * Signing in is mandatory: App.jsx renders this instead of Shell whenever
- * `user` is not set, and Shell only mounts once it is. Three modes live here
- * rather than as separate routes because there is nowhere to route to yet -
- * the app has no URL-addressable screens - and because the state that moves
- * a user from one mode to the next (an email pending verification) is only
- * ever needed here.
+ * App.jsx renders this instead of Shell whenever `user` is not set, and
+ * Shell only mounts once it is - either a real signed-in user or a guest
+ * (see continueAsGuest in AuthContext). Three modes live here rather than as
+ * separate routes because there is nowhere to route to yet - the app has no
+ * URL-addressable screens - and because the state that moves a user from one
+ * mode to the next (an email pending verification) is only ever needed here.
  */
 export function AuthGate() {
   const { status } = useAuth();
@@ -49,7 +49,7 @@ export function AuthGate() {
             </div>
             <h1>Lehra</h1>
           </div>
-          <p className="auth-subtitle">Sign in to start your Riyaaz.</p>
+          <p className="auth-subtitle">Sign in to start your Riyaaz, or try it without an account.</p>
         </div>
 
         {mode === "otp" ? (
@@ -85,12 +85,15 @@ export function AuthGate() {
             </div>
 
             {mode === "login" ? (
-              <LoginForm
-                onNeedsVerification={(email) => {
-                  setPendingEmail(email);
-                  setMode("otp");
-                }}
-              />
+              <>
+                <LoginForm
+                  onNeedsVerification={(email) => {
+                    setPendingEmail(email);
+                    setMode("otp");
+                  }}
+                />
+                <GuestOption />
+              </>
             ) : (
               <SignupForm />
             )}
@@ -234,6 +237,22 @@ function LoginForm({ onNeedsVerification }) {
       </button>
       <ErrorLine error={error} />
     </form>
+  );
+}
+
+/** Escape hatch on the sign-in tab for someone who wants to try the app
+    before creating an account - see continueAsGuest in AuthContext. */
+function GuestOption() {
+  const { continueAsGuest } = useAuth();
+  return (
+    <button
+      type="button"
+      className="btn"
+      style={{ marginTop: 4, fontSize: 13 }}
+      onClick={continueAsGuest}
+    >
+      Continue without an account
+    </button>
   );
 }
 
